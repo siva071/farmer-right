@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import Home from "./pages/Home.jsx";
 import Questions from "./pages/Questions.jsx";
 import Results from "./pages/Results.jsx";
-import Admin from "./pages/Admin.jsx";
 import { t, getStoredLang, setStoredLang } from "./i18n.js";
+import { scrollScreenToTop } from "./lib/scrollScreen.js";
 
 const ANSWERS_KEY = "rh.answers";
 
@@ -37,7 +37,7 @@ export default function App() {
 
   const go = (p) => {
     setPage(p);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    scrollScreenToTop();
   };
 
   const startQuestions = () => {
@@ -63,8 +63,6 @@ export default function App() {
     );
   } else if (page === "results") {
     body = <Results lang={lang} answers={answers} onNavigate={go} />;
-  } else if (page === "admin") {
-    body = <Admin lang={lang} onNavigate={go} />;
   } else {
     body = (
       <Home
@@ -77,49 +75,48 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col font-sans">
-      <header className="border-b border-outline bg-surface">
-        <div className="max-w-[390px] mx-auto px-4 h-14 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => go("home")}
-            className="text-[18px] font-bold text-ink min-h-[48px]"
-          >
-            {t("app_name", lang)}
-          </button>
-          <div role="group" aria-label="Language" className="flex rounded-full border border-outline overflow-hidden">
-            {["te", "en"].map((l) => (
-              <button
-                key={l}
-                type="button"
-                aria-pressed={lang === l}
-                onClick={() => setLang(l)}
-                className={`px-3 h-10 text-sm font-semibold ${
-                  lang === l ? "bg-primary-container text-primary" : "bg-surface text-muted"
-                }`}
-              >
-                {l === "te" ? "తె" : "EN"}
-              </button>
-            ))}
+    <div className="phone-stage">
+      <div className="phone-frame">
+        <div className="phone-screen">
+          <div className="min-h-screen flex flex-col font-sans">
+            <header className="border-b border-outline bg-surface">
+              <div className="max-w-[390px] mx-auto px-4 h-14 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => go("home")}
+                  className="text-[18px] font-bold text-ink min-h-[48px]"
+                >
+                  {t("app_name", lang)}
+                </button>
+                <div role="group" aria-label="Language" className="flex rounded-full border border-outline overflow-hidden">
+                  {["te", "en"].map((l) => (
+                    <button
+                      key={l}
+                      type="button"
+                      aria-pressed={lang === l}
+                      onClick={() => setLang(l)}
+                      className={`px-3 h-10 text-sm font-semibold ${
+                        lang === l ? "bg-primary-container text-primary" : "bg-surface text-muted"
+                      }`}
+                    >
+                      {l === "te" ? "తె" : "EN"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </header>
+
+            <main className="flex-1">{body}</main>
+
+            <footer className="border-t border-outline bg-surface">
+              <div className="max-w-[390px] mx-auto px-4 py-4 space-y-2 text-sm text-muted">
+                <p>{t("footer_free", lang)}</p>
+                <p>{t("footer_forever", lang)}</p>
+              </div>
+            </footer>
           </div>
         </div>
-      </header>
-
-      <main className="flex-1">{body}</main>
-
-      <footer className="border-t border-outline bg-surface">
-        <div className="max-w-[390px] mx-auto px-4 py-4 space-y-2 text-sm text-muted">
-          <p>{t("footer_free", lang)}</p>
-          <p>{t("footer_forever", lang)}</p>
-          <button
-            type="button"
-            onClick={() => go("admin")}
-            className="underline min-h-[48px] text-muted"
-          >
-            {t("admin", lang)}
-          </button>
-        </div>
-      </footer>
+      </div>
     </div>
   );
 }

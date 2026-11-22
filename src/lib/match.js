@@ -2,6 +2,7 @@
 // Answers: tenure, area_band, excluded[], crop, has_ccrc, always.
 // Date/region helpers live in matchDates.js and are re-exported here.
 export { seasonFromDate, daysUntil, regionForDistrict } from "./matchDates.js";
+import { blockingReason, failedMatchReason } from "./matchReasons.js";
 
 const AREA_LOWER_ACRES = { lt_10c: 0, "10c_5a": 0.1, "5_10a": 5, gt_10a: 10 };
 const CROP_MIN_ACRES = { betelvine: 0.1, vegetables: 0.5, horticulture: 0.5 };
@@ -19,13 +20,19 @@ export function tenantMinOk(areaBand, crop) {
 
 // Adds derived fields used by rules. Tenant-only checks are gated on
 // tenure === "tenant" so owners are not failed by tenant rules.
+// The 10c_5a band straddles the tenant minimum, so a failed minimum there is
+// tenant_min_uncertain (a maybe), not tenant_min_fail (a hard no).
 function withDerived(answers) {
   const isTenant = answers.tenure === "tenant";
   const hasCcrc = Boolean(answers.has_ccrc);
+  const tenantMin = isTenant ? tenantMinOk(answers.area_band, answers.crop) : true;
+  const straddles = answers.area_band === "10c_5a";
   return {
     ...answers,
     always: true,
-    tenant_min_ok: isTenant ? tenantMinOk(answers.area_band, answers.crop) : true,
+    tenant_min_ok: tenantMin,
+    tenant_min_fail: isTenant && !tenantMin && !straddles,
+    tenant_min_uncertain: isTenant && !tenantMin && straddles,
     tenant_ccrc: isTenant && hasCcrc,
     tenant_no_ccrc: isTenant && !hasCcrc,
   };
@@ -54,28 +61,6 @@ function evalRule(rule, ctx) {
   }
 }
 
-// A fired not_match rule blocks: use its blocked_* text, else its reason_*.
-function blockingReason(r) {
-  const hasBlocked = Boolean(r.blocked_en || r.blocked_te);
-  return {
-    te: hasBlocked ? r.blocked_te : r.reason_te,
-    en: hasBlocked ? r.blocked_en : r.reason_en,
-    rule_id: r.id,
-  };
-}
-
-// A failed match rule blocks only via blocked_* text, else its fix_* text.
-// Its reason_* describes the passing condition, so it is never used here.
-function failedMatchReason(r) {
-  if (r.blocked_en || r.blocked_te) {
-    return { te: r.blocked_te, en: r.blocked_en, rule_id: r.id };
-  }
-  if (r.fix_en || r.fix_te) {
-    return { te: r.fix_te, en: r.fix_en, rule_id: r.id };
-  }
-  return null;
-}
-
 function evaluateOne(scheme, ctx) {
   const rules = scheme.rules ?? {};
   const match = rules.match ?? [];
@@ -84,6 +69,9 @@ function evaluateOne(scheme, ctx) {
   const passing = match.filter((r) => evalRule(r, ctx));
   const failing = match.filter((r) => !evalRule(r, ctx));
   const firedNot = notMatch.filter((r) => evalRule(r, ctx));
+  // An uncertain not_match rule (uncertain: true) gives "maybe", never "not".
+  const firedHard = firedNot.filter((r) => !r.uncertain);
+  const firedUncertain = firedNot.filter((r) => r.uncertain);
 
   let matchOk;
   if (match.length === 0) matchOk = true;
@@ -93,19 +81,23 @@ function evaluateOne(scheme, ctx) {
   let group;
   if (scheme.status === "closed") group = "closed";
   else if (scheme.status === "superseded") group = "superseded";
-  else if (firedNot.length > 0 || !matchOk) group = "not";
-  else if (passing.some((r) => r.unresolved) || scheme.status === "open_ask_rsk") group = "maybe";
+  else if (firedHard.length > 0 || !matchOk) group = "not";
+  else if (firedUncertain.length > 0 || passing.some((r) => r.unresolved) || scheme.status === "open_ask_rsk") group = "maybe";
   else group = "likely";
 
   // "not" results name only what blocked them: fired not_match rules and failed
-  // match rules. Passing rules are left out. Other groups keep the passing reasons.
+  // match rules. Passing rules are left out. Other groups keep the passing reasons,
+  // plus the reason of any uncertain rule.
   const reasons =
     group === "not"
       ? [
-          ...firedNot.filter((r) => r.hide_why !== true).map(blockingReason),
+          ...firedHard.filter((r) => r.hide_why !== true).map(blockingReason),
           ...failing.filter((r) => r.hide_why !== true).map(failedMatchReason).filter(Boolean),
         ]
-      : passing.filter((r) => r.hide_why !== true).map((r) => ({ te: r.reason_te, en: r.reason_en, rule_id: r.id }));
+      : [
+          ...passing.filter((r) => r.hide_why !== true).map((r) => ({ te: r.reason_te, en: r.reason_en, rule_id: r.id })),
+          ...firedUncertain.map((r) => ({ te: r.reason_te, en: r.reason_en, rule_id: r.id })),
+        ];
 
   let fixes = firedNot
     .filter((r) => r.fix_te || r.fix_en)
@@ -193,4 +185,3 @@ export function blockersRanked(results) {
     .filter((r) => r.group === "not" && r.blocked_per_year > 0)
     .sort((a, b) => b.blocked_per_year - a.blocked_per_year);
 }
-

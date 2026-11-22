@@ -8,11 +8,11 @@ import {
 
 import { t } from "../i18n.js";
 import { getTeluguVoice } from "../lib/voice.js";
+import { scrollScreenToElement } from "../lib/scrollScreen.js";
 
 const MS_PER_DAY = 86400000;
 const ANSWERS_KEY = "rh.answers";
 
-const CUSTOM_KEY = "rh.customSchemes";
 const HELPER_KEY = "rh.helper";
 
 // Display order of groups. Closed and superseded come last.
@@ -61,15 +61,6 @@ const DECODER = [
 const CARD = "rounded-2xl border border-[#E3E6DF] bg-surface p-4";
 const OUTLINE_BTN =
   "w-full min-h-[48px] rounded-full border border-[#1B5E20] bg-surface px-4 text-[17px] font-semibold text-[#1B5E20]";
-
-function readCustomSchemes() {
-  try {
-    const v = JSON.parse(localStorage.getItem(CUSTOM_KEY) || "[]");
-    return Array.isArray(v) ? v : [];
-  } catch {
-    return [];
-  }
-}
 
 function readHelper() {
   try {
@@ -202,7 +193,7 @@ function SchemeCard({ r, s, lang, tenure, crop }) {
           <p className="text-[17px] leading-6 text-muted">{t("no_steps", lang)}</p>
         )}
       </div>
-      {(s?.official_link || (s?.id?.startsWith("custom-") && s?.last_verified)) && (
+      {s?.official_link && (
         <p className="text-[17px] leading-6 text-ink">
           {s?.official_link && (
             <a
@@ -245,7 +236,7 @@ export default function Results({ lang, answers, onNavigate }) {
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
       .then((json) => {
         if (cancelled) return;
-        const list = [...json.schemes, ...readCustomSchemes()];
+        const list = [...json.schemes];
         const byId = Object.fromEntries(list.map((s) => [s.id, s]));
         const results = evaluateSchemes(answers, list);
         setState({ status: "ready", results, schemes: byId, message: "" });
@@ -263,7 +254,7 @@ export default function Results({ lang, answers, onNavigate }) {
   const heroReady = hasAnswers && state.status === "ready";
   useEffect(() => {
     if (!heroReady) return;
-    heroRef.current && heroRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    scrollScreenToElement(heroRef.current);
   }, [heroReady]);
 
   if (!hasAnswers) {
