@@ -8,7 +8,7 @@ import {
 import { t } from "../i18n.js";
 import { scrollScreenToElement } from "../lib/scrollScreen.js";
 import { ANSWERS_KEY, GROUP_ORDER, HELPER_KEY, OUTLINE_BTN } from "../lib/resultsConfig.js";
-import { bi, docForTenure, documentsFor, money, readHelper } from "../lib/resultsHelpers.js";
+import { bi, docForTenure, documentsFor, groupLabel, money, readHelper } from "../lib/resultsHelpers.js";
 import { openChecklistWindow } from "../lib/resultsPrint.js";
 import { useResultsSpeech } from "../lib/useResultsSpeech.js";
 import BlockersSection from "../components/results/BlockersSection.jsx";
@@ -41,6 +41,7 @@ export default function Results({ lang, answers, onNavigate }) {
   const blockers = blockersRanked(results);
   const blockedTotal = blockers.reduce((sum, r) => sum + r.blocked_per_year, 0);
   const likelyNames = groups.likely.map((r) => bi(lang, schemes[r.id]?.name_te, schemes[r.id]?.name_en) || r.id);
+  const likelyNamesEn = groups.likely.map((r) => bi("en", schemes[r.id]?.name_te, schemes[r.id]?.name_en) || r.id);
   const tenure = answers?.tenure;
   const docsFor = (r) => documentsFor(schemes[r.id], tenure);
   const docResults = ordered.filter((r) => docsFor(r).length > 0);
@@ -49,10 +50,15 @@ export default function Results({ lang, answers, onNavigate }) {
   const isDocReady = (key, d) =>
     docDone[key] ?? (ccrcYes && docForTenure(d, tenure).en === "CCRC card");
 
-  const summaryText = `${season}. Total ${money(total)} per year. Likely eligible: ${
-    likelyNames.join(", ") || "none"
-  }.`;
-  const { speaking, speechMsg, speakSummary, stopSpeaking } = useResultsSpeech(lang, summaryText);
+  const summaryText = t("summary_line", lang)
+    .replace("{season}", seasonShown)
+    .replace("{amount}", money(total))
+    .replace("{names}", likelyNames.join(", ") || t("summary_none", lang));
+  const summaryTextEn = t("summary_line", "en")
+    .replace("{season}", season)
+    .replace("{amount}", money(total))
+    .replace("{names}", likelyNamesEn.join(", ") || t("summary_none", "en"));
+  const { speaking, speechMsg, speakSummary, stopSpeaking } = useResultsSpeech(lang, summaryText, summaryTextEn);
 
   useEffect(() => {
     if (!answers || Object.keys(answers).length === 0) return undefined;
@@ -84,31 +90,41 @@ export default function Results({ lang, answers, onNavigate }) {
 
   if (!hasAnswers) {
     return (
-      <div className="max-w-[390px] mx-auto px-4 py-6 space-y-6">
-        <p className="text-[17px] leading-6 text-muted">
-          {t("no_answers", lang)}
-        </p>
-        <button type="button" onClick={() => onNavigate("home")} className={OUTLINE_BTN}>
-          {t("btn_back_home", lang)}
-        </button>
+      <div className="app-page max-w-[390px] mx-auto">
+        <section className="surface-card space-y-4">
+          <div className="space-y-1">
+            <p className="section-kicker">{t("analysis_title", lang)}</p>
+            <h1 className="section-heading">{t("results_title", lang)}</h1>
+          </div>
+          <p className="text-[16px] leading-6 text-muted">{t("no_answers", lang)}</p>
+          <button type="button" onClick={() => onNavigate("home")} className={OUTLINE_BTN}>
+            {t("btn_back_home", lang)}
+          </button>
+        </section>
       </div>
     );
   }
 
   if (state.status === "loading") {
     return (
-      <div className="max-w-[390px] mx-auto px-4 py-6">
-        <p className="text-[17px] text-muted">{t("results_loading", lang)}</p>
+      <div className="app-page max-w-[390px] mx-auto">
+        <section className="surface-card space-y-3">
+          <p className="section-kicker">{t("analysis_title", lang)}</p>
+          <p className="text-[17px] text-muted">{t("results_loading", lang)}</p>
+        </section>
       </div>
     );
   }
 
   if (state.status === "error") {
     return (
-      <div className="max-w-[390px] mx-auto px-4 py-6">
-        <p className="text-[17px] text-ink">
-          {t("results_error", lang)} ({state.message})
-        </p>
+      <div className="app-page max-w-[390px] mx-auto">
+        <section className="surface-card space-y-3">
+          <p className="section-kicker">{t("analysis_title", lang)}</p>
+          <p className="text-[17px] leading-6 text-ink">
+            {t("results_error", lang)} ({state.message})
+          </p>
+        </section>
       </div>
     );
   }
@@ -147,15 +163,45 @@ export default function Results({ lang, answers, onNavigate }) {
     onNavigate("home");
   }
 
-  return (
-    <div className="max-w-[390px] mx-auto px-4 py-6 space-y-6">
-      <h1 className="text-[28px] leading-9 font-bold text-ink">{seasonShown}</h1>
+  const analysisStats = [
+    { label: groupLabel(lang, "likely"), value: groups.likely.length, tone: "bg-[#DCFCE7] text-[#15803D]" },
+    { label: groupLabel(lang, "maybe"), value: groups.maybe.length, tone: "bg-[#FEF3C7] text-[#92400E]" },
+    { label: groupLabel(lang, "not"), value: groups.not.length, tone: "bg-[#F5F5F4] text-[#57534E]" },
+    { label: t("schemes_checked", lang), value: ordered.length, tone: "bg-primary-container text-primary" },
+  ];
 
-      {/* Hero: yearly cash only */}
-      <section ref={heroRef} className="rounded-[20px] border border-[#E3E6DF] bg-surface p-4 space-y-1">
-        <p className="text-[44px] leading-[52px] font-bold text-ink">{money(total)}</p>
-        <p className="text-[17px] text-muted">{t("per_year", lang)}</p>
-        <p className="text-[14px] leading-5 text-muted">{t("pmfby_kcc_note", lang)}</p>
+  return (
+    <div className="app-page max-w-[390px] mx-auto">
+      <section ref={heroRef} className="page-hero space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <span className="chip bg-white/15 text-white">{seasonShown}</span>
+          <span className="chip bg-white/15 text-white">
+            {t("schemes_checked", lang)}: {ordered.length}
+          </span>
+        </div>
+        <div className="space-y-1">
+          <p className="text-[15px] font-semibold text-white/80">{t("per_year", lang)}</p>
+          <p className="text-[46px] leading-[54px] font-bold">{money(total)}</p>
+          <p className="text-[15px] leading-6 text-white/85">{t("analysis_subtitle", lang)}</p>
+        </div>
+        <p className="rounded-2xl bg-white/10 p-3 text-[13px] leading-5 text-white/85">
+          {t("pmfby_kcc_note", lang)}
+        </p>
+      </section>
+
+      <section className="surface-card space-y-4">
+        <div className="space-y-1">
+          <p className="section-kicker">{t("analysis_title", lang)}</p>
+          <h2 className="section-heading">{t("results_title", lang)}</h2>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {analysisStats.map((stat) => (
+            <div key={stat.label} className="rounded-[18px] border border-outline bg-[#F8FAF5] p-3">
+              <p className={`chip mb-2 ${stat.tone}`}>{stat.value}</p>
+              <p className="text-[13px] font-semibold leading-5 text-muted">{stat.label}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       {blockers.length > 0 && (

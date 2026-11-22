@@ -11,7 +11,7 @@ export const STRINGS = {
   },
   footer_forever: {
     te: "రైతులకు ఎప్పుడూ ఉచితమే — NGOలు, CSR, బ్యాంకులు కడతాయి",
-    en: "Farmer ki free, forever — NGOs, CSR, banks pay",
+    en: "Free for farmers, forever — NGOs, CSR, and banks pay",
   },
   home_headline: {
     te: "మీ హక్కులు, మీ పథకాలు — అన్నీ ఒకే చోట",
@@ -21,9 +21,13 @@ export const STRINGS = {
     te: "ఒక రైతును ఎంచుకోండి, లేదా మీరే మొదలుపెట్టండి",
     en: "Pick a farmer example, or start",
   },
+  home_examples: {
+    te: "ఉదాహరణలు",
+    en: "Examples",
+  },
   helper_toggle: {
     te: "నేను రైతులకు సాయం చేస్తున్నాను",
-    en: "Nenu farmer ki help chesthunna",
+    en: "I help farmers",
   },
   helper_text: {
     te: "ఇది రైతుల కోసం ఉచిత సాయం. లాగిన్ అవసరం లేదు. ఆధార్ గానీ బ్యాంక్ నంబర్ గానీ అడగదు.",
@@ -56,14 +60,27 @@ export const STRINGS = {
   results_loading: { te: "లోడ్ అవుతోంది...", en: "Loading..." },
   results_error: { te: "పథకాల సమాచారం రాలేదు", en: "Could not load scheme data" },
   results_back: { te: "ప్రశ్నలకు తిరిగి వెళ్ళు", en: "Back to questions" },
+  analysis_title: { te: "పూర్తి విశ్లేషణ", en: "Full analysis" },
+  analysis_subtitle: {
+    te: "మీ సమాధానాల ఆధారంగా పథకం, డొక్యుమెంట్, గడువు వివరాలు",
+    en: "Scheme, document, and deadline details based on your answers",
+  },
+  schemes_checked: { te: "పరిశీలించిన పథకాలు", en: "Schemes checked" },
+  summary_line: {
+    te: "{season}. సంవత్సరానికి మొత్తం {amount}. అర్హత ఉండవచ్చు: {names}.",
+    en: "{season}. Total {amount} per year. Likely eligible: {names}.",
+  },
+  summary_none: { te: "ఏదీ లేదు", en: "none" },
   group_likely: { te: "అర్హత ఉండవచ్చు", en: "Likely eligible" },
-  group_maybe: { te: "ఇంకా చెక్ చేయాలి", en: "Needs checking" },
+  group_maybe: { te: "ఇంకా చెక్ చేయాలి", en: "May be eligible" },
   group_not: { te: "ప్రస్తుతం అర్హత లేదు", en: "Not eligible now" },
   group_closed: { te: "ఇప్పుడు దరఖాస్తు తీసుకోవడం లేదు", en: "Closed now" },
   group_superseded: { te: "ఇప్పుడు ఈ పథకం లేదు", en: "No longer active" },
   admin_title: { te: "అడ్మిన్", en: "Admin" },
   admin_soon: { te: "త్వరలో వస్తుంది", en: "Coming next" },
   step_of: { te: "ప్రశ్న", en: "Question" },
+  gender_label: { te: "లింగం", en: "Gender" },
+  category_label: { te: "కేటగరీ", en: "Category" },
   per_year: { te: "సంవత్సరానికి", en: "per year" },
   pmfby_kcc_note: {
     te: "PMFBY బీమా, KCC రుణం ఇక్కడ లెక్కలోకి తీసుకోలేదు — అవి ఏటా వచ్చే డబ్బు కాదు",
@@ -96,7 +113,7 @@ export const STRINGS = {
   deadline_passed: { te: "గడువు ముగిసింది", en: "Deadline passed" },
   pmfby_district_note: {
     te: "మీ జిల్లా ప్రకటన చూడండి — pmfby.gov.in",
-    en: "District notification chudandi — pmfby.gov.in",
+    en: "Check your district notification — pmfby.gov.in",
   },
   pattadar_passbook: { te: "పట్టాదారు పాస్‌బుక్", en: "Pattadar passbook" },
   ccrc_card: { te: "CCRC కార్డు", en: "CCRC card" },

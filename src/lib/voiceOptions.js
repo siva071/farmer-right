@@ -5,15 +5,15 @@ import { labelOf } from "./questionSteps.js";
 
 // Spoken forms for option 1, 2, 3, ... (English, Telugu romanised, Telugu script).
 const ORDINAL_WORDS = [
-  ["one", "first", "okati", "modati", "ఒకటి", "మొదటి"],
-  ["two", "second", "rendu", "rendava", "రెండు", "రెండవ"],
-  ["three", "third", "moodu", "mudu", "మూడు", "మూడవ"],
-  ["four", "fourth", "naalugu", "nalugu", "నాలుగు", "నాలుగవ"],
-  ["five", "fifth", "aidu", "ayidu", "ఐదు", "ఐదవ"],
-  ["six", "sixth", "aaru", "aru", "ఆరు", "ఆరవ"],
-  ["seven", "seventh", "edu", "yedu", "ఏడు", "ఏడవ"],
-  ["eight", "eighth", "enimidi", "ఎనిమిది", "ఎనిమిదవ"],
-  ["nine", "ninth", "tommidi", "తొమ్మిది", "తొమ్మిదవ"],
+  ["one", "first", "okati", "modati", "ఒకటి", "మొదటి", "వన్", "1"],
+  ["two", "second", "rendu", "rendava", "రెండు", "రెండవ", "టూ", "2"],
+  ["three", "third", "moodu", "mudu", "మూడు", "మూడవ", "త్రీ", "3"],
+  ["four", "fourth", "naalugu", "nalugu", "నాలుగు", "నాలుగవ", "ఫోర్", "4"],
+  ["five", "fifth", "aidu", "ayidu", "ఐదు", "ఐదవ", "ఫైవ్", "5"],
+  ["six", "sixth", "aaru", "aru", "ఆరు", "ఆరవ", "సిక్స్", "6"],
+  ["seven", "seventh", "edu", "yedu", "ఏడు", "ఏడవ", "సెవెన్", "7"],
+  ["eight", "eighth", "enimidi", "ఎనిమిది", "ఎనిమిదవ", "ఎయిట్", "8"],
+  ["nine", "ninth", "tommidi", "తొమ్మిది", "తొమ్మిదవ", "నైన్", "9"],
 ];
 
 // Lowercase, drop ZWNJ/ZWJ, turn punctuation into spaces (Telugu vowel signs are kept).
@@ -78,5 +78,6 @@ export function matchOption(transcript, options) {
 
 // "Option 1: <text>, Option 2: <text>, ..." in the given language.
 export function optionListText(options, lang) {
-  return options.map((o, i) => `Option ${i + 1}: ${labelOf(o, lang)}`).join(", ");
+  const prefix = lang === "te" ? "ఆప్షన్" : "Option";
+  return options.map((o, i) => `${prefix} ${i + 1}: ${labelOf(o, lang)}`).join(", ");
 }

@@ -1,11 +1,21 @@
-// Shared Telugu voice lookup for speechSynthesis.
+// Shared voice lookup for speechSynthesis.
 // Voices load asynchronously on many phones, so an empty getVoices() on first call
-// does not mean "no Telugu voice". Wait for voiceschanged, up to timeoutMs.
+// does not mean "no voice". Wait for voiceschanged, up to timeoutMs.
 
-const isTelugu = (v) => /^te/i.test(v?.lang || "");
+const voiceLang = (v) => String(v?.lang || "").toLowerCase();
 
-// Resolves to the first voice whose lang starts with "te", or null.
-export function getTeluguVoice(synth, timeoutMs = 1500) {
+function findVoice(list, lang) {
+  const prefix = lang === "te" ? "te" : "en";
+  const exact = `${prefix}-in`;
+  return (
+    list.find((v) => voiceLang(v) === exact) ||
+    list.find((v) => voiceLang(v).startsWith(`${prefix}-`)) ||
+    list.find((v) => voiceLang(v).startsWith(prefix)) ||
+    null
+  );
+}
+
+function getVoiceForLang(synth, lang = "en", timeoutMs = 1500) {
   return new Promise((resolve) => {
     if (!synth) {
       resolve(null);
@@ -19,7 +29,7 @@ export function getTeluguVoice(synth, timeoutMs = 1500) {
       initial = [];
     }
     if (initial.length > 0) {
-      resolve(initial.find(isTelugu) || null);
+      resolve(findVoice(initial, lang));
       return;
     }
 
@@ -43,11 +53,20 @@ export function getTeluguVoice(synth, timeoutMs = 1500) {
       } catch {
         list = [];
       }
-      if (list.length > 0) finish(list.find(isTelugu) || null);
+      if (list.length > 0) finish(findVoice(list, lang));
     }
 
     if (useEvents) synth.addEventListener("voiceschanged", onChanged);
     else synth.onvoiceschanged = onChanged;
     timer = setTimeout(() => finish(null), timeoutMs);
   });
+}
+
+// Resolves to a Telugu voice when installed, otherwise null.
+export function getTeluguVoice(synth, timeoutMs = 1500) {
+  return getVoiceForLang(synth, "te", timeoutMs);
+}
+
+export function getLangVoice(synth, lang, timeoutMs = 1500) {
+  return getVoiceForLang(synth, lang === "te" ? "te" : "en", timeoutMs);
 }

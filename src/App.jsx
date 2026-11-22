@@ -78,25 +78,25 @@ export default function App() {
     <div className="phone-stage">
       <div className="phone-frame">
         <div className="phone-screen">
-          <div className="min-h-screen flex flex-col font-sans">
-            <header className="border-b border-outline bg-surface">
-              <div className="max-w-[390px] mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="min-h-full flex flex-col font-sans">
+            <header className="border-b border-outline/80 bg-surface/90 backdrop-blur">
+              <div className="max-w-[390px] mx-auto px-4 h-16 flex items-center justify-between">
                 <button
                   type="button"
                   onClick={() => go("home")}
-                  className="text-[18px] font-bold text-ink min-h-[48px]"
+                  className="text-[19px] font-bold tracking-tight text-ink min-h-[48px]"
                 >
                   {t("app_name", lang)}
                 </button>
-                <div role="group" aria-label="Language" className="flex rounded-full border border-outline overflow-hidden">
+                <div role="group" aria-label="Language" className="flex rounded-full border border-outline bg-surface p-1 overflow-hidden">
                   {["te", "en"].map((l) => (
                     <button
                       key={l}
                       type="button"
                       aria-pressed={lang === l}
                       onClick={() => setLang(l)}
-                      className={`min-h-[48px] px-4 text-base font-semibold ${
-                        lang === l ? "bg-primary-container text-primary" : "bg-surface text-muted"
+                      className={`min-h-[40px] px-4 rounded-full text-sm font-bold transition ${
+                        lang === l ? "bg-primary text-white" : "text-muted"
                       }`}
                     >
                       {l === "te" ? "తె" : "EN"}
@@ -108,8 +108,8 @@ export default function App() {
 
             <main className="flex-1">{body}</main>
 
-            <footer className="border-t border-outline bg-surface">
-              <div className="max-w-[390px] mx-auto px-4 py-4 space-y-2 text-sm text-muted">
+            <footer className="border-t border-outline/80 bg-surface/90 backdrop-blur">
+              <div className="max-w-[390px] mx-auto px-4 py-4 space-y-1 text-[13px] leading-5 text-muted">
                 <p>{t("footer_free", lang)}</p>
                 <p>{t("footer_forever", lang)}</p>
               </div>

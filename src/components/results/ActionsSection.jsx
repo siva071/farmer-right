@@ -17,18 +17,25 @@ export default function ActionsSection({
   onStartAgain,
 }) {
   return (
-    <section className="space-y-3">
+    <section className="surface-card space-y-3">
+      <div className="space-y-1">
+        <p className="section-kicker">{t("analysis_title", lang)}</p>
+        <h2 className="section-heading">{t("results_title", lang)}</h2>
+      </div>
+
       <button
         type="button"
         onClick={onShare}
-        className="w-full h-14 rounded-full bg-[#1B5E20] text-[17px] font-semibold text-white"
+        className="flex min-h-[56px] w-full items-center justify-center rounded-full bg-[#1B5E20] px-5 text-[17px] font-bold text-white shadow-[0_10px_24px_rgba(27,94,32,0.18)]"
       >
         {t("btn_whatsapp", lang)}
       </button>
+
       <button type="button" onClick={onPrint} className={OUTLINE_BTN}>
         {t("btn_checklist", lang)}
       </button>
-      {printMsg && <p className="text-[14px] text-muted">{printMsg}</p>}
+      {printMsg && <p className="text-[14px] leading-5 text-muted">{printMsg}</p>}
+
       <button
         type="button"
         onClick={onSpeak}
@@ -41,7 +48,8 @@ export default function ActionsSection({
           {t("stop_speaking", lang)}
         </button>
       )}
-      {speechMsg && <p className="text-[14px] text-muted">{speechMsg}</p>}
+      {speechMsg && <p className="text-[14px] leading-5 text-muted">{speechMsg}</p>}
+
       <button
         type="button"
         aria-pressed={helper}
@@ -50,11 +58,11 @@ export default function ActionsSection({
       >
         {t("helper_toggle", lang)}
       </button>
-      {helper && <p className="text-[17px] leading-6 text-muted">{t("helper_on", lang)}</p>}
+      {helper && <p className="text-[16px] leading-6 text-muted">{t("helper_on", lang)}</p>}
+
       <button type="button" onClick={onStartAgain} className={OUTLINE_BTN}>
         {t("btn_start_again", lang)}
       </button>
     </section>
   );
 }
-

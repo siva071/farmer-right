@@ -2,6 +2,68 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .app-page {
+    @apply flex min-h-full flex-col gap-5 px-4 py-5;
+  }
+
+  .page-hero {
+    @apply rounded-[28px] bg-primary p-5 text-white shadow-[0_18px_40px_rgba(27,94,32,0.18)];
+  }
+
+  .page-hero-muted {
+    @apply text-white/80;
+  }
+
+  .surface-card {
+    @apply rounded-[24px] border border-outline bg-surface p-4 shadow-[0_10px_30px_rgba(26,28,26,0.06)];
+  }
+
+  .analysis-card {
+    @apply rounded-[22px] border border-outline bg-surface p-4 shadow-[0_8px_24px_rgba(26,28,26,0.05)];
+  }
+
+  .section-heading {
+    @apply text-[20px] font-bold leading-7 text-ink;
+  }
+
+  .section-kicker {
+    @apply text-[13px] font-bold uppercase tracking-[0.08em] text-muted;
+  }
+
+  .primary-button {
+    @apply flex min-h-[56px] w-full items-center justify-center rounded-full bg-primary px-5 text-[17px] font-bold text-white shadow-[0_10px_24px_rgba(27,94,32,0.18)] transition disabled:cursor-not-allowed disabled:bg-outline disabled:text-muted disabled:shadow-none;
+  }
+
+  .secondary-button {
+    @apply flex min-h-[52px] w-full items-center justify-center rounded-full border border-primary bg-surface px-4 text-[16px] font-bold text-primary transition;
+  }
+
+  .ghost-button {
+    @apply flex min-h-[44px] items-center justify-center rounded-full px-3 text-[15px] font-semibold text-muted underline-offset-4 hover:underline;
+  }
+
+  .chip {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-[13px] font-bold;
+  }
+
+  .option-button {
+    @apply flex min-h-[64px] w-full items-center rounded-[18px] border-2 border-outline bg-surface px-4 py-3 text-left text-[17px] font-semibold leading-6 text-ink transition;
+  }
+
+  .option-button-selected {
+    @apply border-primary bg-primary-container;
+  }
+
+  .soft-panel {
+    @apply rounded-[20px] border border-outline bg-[#F4F6F1] p-4;
+  }
+
+  .bottom-action-bar {
+    @apply sticky bottom-3 z-20 rounded-[24px] border border-outline bg-surface/95 p-3 shadow-[0_16px_40px_rgba(26,28,26,0.14)] backdrop-blur;
+  }
+}
+
 body {
   background-color: #F7F8F3;
   color: #1A1C1A;

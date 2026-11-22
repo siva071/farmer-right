@@ -2,7 +2,7 @@
 // (te-IN, en-IN when lang is "en"), and turns a spoken phrase into the same answer a tap gives.
 import { useEffect, useRef, useState } from "react";
 import { t } from "../i18n.js";
-import { getTeluguVoice } from "./voice.js";
+import { getLangVoice } from "./voice.js";
 import { matchOption, normalizeSpeech, optionListText } from "./voiceOptions.js";
 
 export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) {
@@ -51,7 +51,8 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
     else setVoiceMsg(t("voice_no_match", lang));
   };
 
-  // Reads the question, then the options, aloud: Telugu voice if installed, otherwise English.
+  // Reads the question, then the options, aloud in the selected UI language.
+  // Telugu falls back to English with a one-time notice when no Telugu voice is installed.
   // onDone runs once on end (or after timeoutMs if onend never fires); onFail on error.
   const speakQuestion = async (onDone, onFail, timeoutMs) => {
     const synth = window.speechSynthesis;
@@ -62,16 +63,16 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
     }
     const token = ++speakTokenRef.current;
     // Waits for the voice list to load; a newer tap supersedes this one.
-    const teVoice = await getTeluguVoice(synth);
+    const voice = await getLangVoice(synth, lang);
     if (token !== speakTokenRef.current) return;
-    if (!teVoice && once("telugu_voice_missing")) {
-      // No Telugu voice: say so once, then speak English for this tap only.
+    const useTelugu = lang === "te" && Boolean(voice);
+    if (lang === "te" && !voice && once("telugu_voice_missing")) {
       const msg = t("telugu_voice_missing", lang);
       setSpeakMsg(msg);
       setVoiceMsg(msg);
     }
-    const spokenLang = teVoice ? "te" : "en";
-    const prompt = teVoice ? step.prompt.te : step.prompt.en;
+    const spokenLang = useTelugu ? "te" : "en";
+    const prompt = useTelugu ? step.prompt.te : step.prompt.en;
     const text = options.length ? `${prompt}. ${optionListText(options, spokenLang)}` : prompt;
     let timer = null;
     let finished = false;
@@ -86,8 +87,8 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
     try {
       synth.cancel();
       const u = new Utter(text);
-      u.lang = teVoice ? "te-IN" : "en-IN";
-      if (teVoice) u.voice = teVoice;
+      u.lang = useTelugu ? "te-IN" : voice?.lang || "en-IN";
+      if (voice && (useTelugu || lang === "en")) u.voice = voice;
       u.onend = () => finish(true);
       u.onerror = () => finish(false);
       setSpeaking(true);
@@ -110,14 +111,14 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
     );
   };
 
-  // Starts recognition (te-IN). Every exit path clears listening or shows a message.
+  // Starts recognition in the selected UI language. Every exit path clears listening or shows a message.
   const startRecognition = () => {
     if (!SR) {
       showUnavailable(setVoiceMsg);
       return;
     }
     const rec = new SR();
-    rec.lang = "te-IN";
+    rec.lang = lang === "te" ? "te-IN" : "en-IN";
     rec.interimResults = false;
     rec.maxAlternatives = 1;
     let gotResult = false;

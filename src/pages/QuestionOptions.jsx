@@ -21,13 +21,18 @@ export default function QuestionOptions({
         type="button"
         aria-pressed={selected}
         onClick={() => choose(s, opt)}
-        className={`min-h-[72px] w-full px-4 py-3 rounded-[16px] border text-left text-[18px] font-semibold leading-6 ${
-          selected
-            ? "border-primary bg-primary-container text-ink"
-            : "border-outline bg-surface text-ink"
-        }`}
+        className={`option-button ${selected ? "option-button-selected" : ""}`}
       >
-        {labelOf(opt, lang)}
+        <span className="flex w-full items-center justify-between gap-3">
+          <span>{labelOf(opt, lang)}</span>
+          <span
+            className={`h-6 w-6 shrink-0 rounded-full border-2 transition ${
+              selected ? "border-primary bg-primary" : "border-outline bg-surface"
+            }`}
+          >
+            {selected && <span className="block h-full w-full scale-50 rounded-full bg-white" />}
+          </span>
+        </span>
       </button>
     );
   };
@@ -38,7 +43,7 @@ export default function QuestionOptions({
         aria-label={promptText}
         value={answers.district || ""}
         onChange={(e) => pickSingle("district", e.target.value)}
-        className="w-full min-h-[56px] px-4 rounded-[16px] border border-outline bg-surface text-[18px] font-semibold text-ink"
+        className="w-full min-h-[60px] rounded-[18px] border-2 border-outline bg-surface px-4 text-[17px] font-semibold text-ink outline-none transition focus:border-primary"
       >
         <option value="" disabled>
           {lang === "en" ? "Choose district" : "జిల్లా ఎంచుకోండి"}
@@ -54,12 +59,22 @@ export default function QuestionOptions({
 
   if (step.type === "about") {
     return (
-      <div className="space-y-5">
-        <div className="space-y-3">
-          {GENDER.map((o) => optionButton(step, o))}
+      <div className="space-y-4">
+        <div className="soft-panel space-y-3">
+          <p className="text-[13px] font-bold uppercase tracking-[0.08em] text-muted">
+            {t("gender_label", lang)}
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            {GENDER.map((o) => optionButton(step, o))}
+          </div>
         </div>
-        <div className="space-y-3">
-          {CATEGORY.map((o) => optionButton(step, o))}
+        <div className="soft-panel space-y-3">
+          <p className="text-[13px] font-bold uppercase tracking-[0.08em] text-muted">
+            {t("category_label", lang)}
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            {CATEGORY.map((o) => optionButton(step, o))}
+          </div>
         </div>
       </div>
     );
@@ -74,8 +89,8 @@ export default function QuestionOptions({
           value={answers.notes || ""}
           onChange={(e) => patch({ notes: e.target.value })}
           placeholder={t("naa_placeholder", lang)}
-          rows={3}
-          className="w-full px-4 py-3 rounded-[16px] border border-outline bg-surface text-[17px] text-ink"
+          rows={4}
+          className="w-full rounded-[18px] border-2 border-outline bg-surface px-4 py-3 text-[17px] leading-6 text-ink outline-none transition placeholder:text-muted/70 focus:border-primary"
         />
       )}
     </div>

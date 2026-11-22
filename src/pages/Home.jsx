@@ -28,103 +28,119 @@ export default function Home({ lang, setLang, onStart, onPersona }) {
   };
 
   return (
-    <div className="max-w-[390px] mx-auto px-4 py-6 space-y-6">
-      <section className="space-y-2">
-        <h1 className="text-[28px] leading-9 font-bold text-ink">
-          {t("home_headline", lang)}
-        </h1>
-        <p className="text-[17px] leading-6 text-muted">{t("home_pick", lang)}</p>
+    <div className="app-page max-w-[390px] mx-auto">
+      <section className="page-hero space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <span className="chip bg-white/15 text-white">{t("app_name", lang)}</span>
+          <div role="group" aria-label="Language" className="flex rounded-full bg-white/15 p-1">
+            {["te", "en"].map((l) => (
+              <button
+                key={l}
+                type="button"
+                aria-pressed={lang === l}
+                onClick={() => setLang(l)}
+                className={`min-h-[40px] px-4 rounded-full text-sm font-bold transition ${
+                  lang === l ? "bg-white text-primary" : "text-white/80"
+                }`}
+              >
+                {l === "te" ? "తె" : "EN"}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="space-y-2">
+          <h1 className="text-[30px] leading-10 font-bold">{t("home_headline", lang)}</h1>
+          <p className="text-[16px] leading-6 text-white/85">{t("home_pick", lang)}</p>
+        </div>
       </section>
 
-      <div role="group" aria-label="Language" className="flex gap-2">
-        {["te", "en"].map((l) => (
-          <button
-            key={l}
-            type="button"
-            aria-pressed={lang === l}
-            onClick={() => setLang(l)}
-            className={`min-h-[48px] px-4 rounded-full border text-[15px] font-semibold ${
-              lang === l
-                ? "bg-primary-container border-primary text-primary"
-                : "bg-surface border-outline text-muted"
-            }`}
-          >
-            {l === "te" ? "తెలుగు" : "English"}
-          </button>
-        ))}
-      </div>
-
-      <section className="grid grid-cols-2 gap-3">
-        {PERSONAS.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            onClick={() => onPersona(p.answers)}
-            className="min-h-[48px] text-left p-4 rounded-2xl border border-outline bg-surface space-y-1"
-          >
-            <span className="block text-[17px] font-semibold text-ink">
-              {p.name[lang] || p.name.en}
-            </span>
-            <span className="block text-[14px] text-muted">
-              {p.age} · {p.place[lang] || p.place.en}
-            </span>
-            <span className="block text-[13px] leading-5 text-muted">
-              {p.desc[lang] || p.desc.en}
-            </span>
-          </button>
-        ))}
+      <section className="surface-card space-y-4">
+        <div className="space-y-1">
+          <p className="section-kicker">{t("home_examples", lang)}</p>
+          <h2 className="section-heading">{t("home_pick", lang)}</h2>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {PERSONAS.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => onPersona(p.answers)}
+              className="min-h-[132px] text-left p-4 rounded-[20px] border border-outline bg-[#F8FAF5] space-y-2 transition hover:border-primary/50 hover:bg-primary-container/50"
+            >
+              <span className="block text-[16px] font-bold text-ink">
+                {p.name[lang] || p.name.en}
+              </span>
+              <span className="block text-[13px] font-semibold text-primary">
+                {p.age} · {p.place[lang] || p.place.en}
+              </span>
+              <span className="block text-[13px] leading-5 text-muted">
+                {p.desc[lang] || p.desc.en}
+              </span>
+            </button>
+          ))}
+        </div>
       </section>
 
-      <section className="space-y-3">
+      <section className="surface-card space-y-3">
         <button
           type="button"
           aria-expanded={helperOpen}
           onClick={() => setHelperOpen((v) => !v)}
-          className="w-full min-h-[48px] p-4 rounded-2xl border border-outline bg-surface text-left text-[15px] font-semibold text-ink"
+          className="flex min-h-[48px] w-full items-center justify-between gap-3 text-left"
         >
-          {t("helper_toggle", lang)}
+          <span className="text-[16px] font-bold text-ink">{t("helper_toggle", lang)}</span>
+          <span className="chip bg-primary-container text-primary">{helperOpen ? "−" : "+"}</span>
         </button>
         {helperOpen && (
-          <p className="text-[15px] leading-6 text-muted px-1">{t("helper_text", lang)}</p>
+          <p className="text-[15px] leading-6 text-muted">{t("helper_text", lang)}</p>
         )}
       </section>
 
-      <button
-        type="button"
-        aria-pressed={voiceHelp === "yes"}
-        onClick={() => chooseVoiceHelp(voiceHelp === "yes" ? "no" : "yes")}
-        className="w-full min-h-[48px] p-4 rounded-2xl border border-outline bg-surface text-left text-[15px] font-semibold text-ink"
-      >
-        {t("voice_help_toggle", lang)}: {voiceHelp === "yes" ? t("voice_help_on", lang) : t("voice_help_off", lang)}
-      </button>
+      <section className="surface-card space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="section-kicker">{t("voice_help_toggle", lang)}</p>
+            <h2 className="section-heading">
+              {voiceHelp === "yes" ? t("voice_help_on", lang) : t("voice_help_off", lang)}
+            </h2>
+          </div>
+          <button
+            type="button"
+            aria-pressed={voiceHelp === "yes"}
+            onClick={() => chooseVoiceHelp(voiceHelp === "yes" ? "no" : "yes")}
+            className={`relative h-12 w-[72px] rounded-full transition ${
+              voiceHelp === "yes" ? "bg-primary" : "bg-outline"
+            }`}
+          >
+            <span
+              className={`absolute top-3 h-6 w-6 rounded-full bg-white shadow transition-all ${
+                voiceHelp === "yes" ? "left-11" : "left-1"
+              }`}
+            />
+          </button>
+        </div>
 
-      {voiceHelp === null && (
-        <section className="space-y-3">
-          <p className="text-[17px] leading-6 font-semibold text-ink">{t("voice_help_q", lang)}</p>
+        {voiceHelp === null && (
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
               onClick={() => chooseVoiceHelp("yes")}
-              className="min-h-[56px] text-[18px] rounded-full bg-primary text-white font-semibold"
+              className="secondary-button"
             >
               {t("voice_yes", lang)}
             </button>
             <button
               type="button"
               onClick={() => chooseVoiceHelp("no")}
-              className="min-h-[56px] text-[18px] rounded-full border border-outline bg-surface text-ink font-semibold"
+              className="secondary-button"
             >
               {t("voice_no", lang)}
             </button>
           </div>
-        </section>
-      )}
+        )}
+      </section>
 
-      <button
-        type="button"
-        onClick={onStart}
-        className="w-full min-h-[56px] text-[18px] rounded-full bg-primary text-white font-semibold"
-      >
+      <button type="button" onClick={onStart} className="primary-button">
         {t("start", lang)}
       </button>
     </div>

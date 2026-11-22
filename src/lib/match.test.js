@@ -102,6 +102,33 @@ test("ysr_rythu_bharosa is superseded and points to Annadata Sukhibhava", () => 
   assert.ok(scheme.benefit_text_en.includes("Annadata Sukhibhava"));
 });
 
+test("tenant in 10c_5a with CCRC is maybe; PM-KISAN is the blocked cash scheme", () => {
+  const answers = {
+    tenure: "tenant",
+    area_band: "10c_5a",
+    crop: "groundnut",
+    has_ccrc: true,
+    excluded: ["none"],
+    always: true,
+  };
+  const results = evaluateSchemes(answers, schemes);
+
+  const annadata = byId(results, "annadata_sukhibhava");
+  assert.equal(annadata.group, "maybe");
+  assert.equal(annadata.benefit_per_year, 0);
+  assert.ok(
+    annadata.reasons.some((r) =>
+      r.en.includes("The band spans the 1-acre tenant minimum; the exact area needs checking at the RSK."),
+    ),
+  );
+
+  const pmKisan = byId(results, "pm_kisan");
+  assert.equal(pmKisan.group, "not");
+  assert.equal(pmKisan.blocked_per_year, 6000);
+  assert.equal(totalCashPerYear(results), 0);
+  assert.equal(blockersRanked(results)[0]?.id, "pm_kisan");
+});
+
 test("seasonFromDate labels", () => {
   assert.equal(seasonFromDate(new Date(2026, 10, 15)).label, "Rabi 2026-27");
   assert.equal(seasonFromDate(new Date(2026, 6, 15)).label, "Kharif 2026");

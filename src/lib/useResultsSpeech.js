@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
 import { t } from "../i18n.js";
-import { getTeluguVoice } from "./voice.js";
+import { getLangVoice } from "./voice.js";
 
 // Speech state and handlers for the summary Listen / Stop buttons on Results.
-export function useResultsSpeech(lang, summaryText) {
+export function useResultsSpeech(lang, summaryText, fallbackText = summaryText) {
   // Speech status shown near the buttons.
   const [speaking, setSpeaking] = useState(false);
   const [speechMsg, setSpeechMsg] = useState("");
@@ -21,15 +21,14 @@ export function useResultsSpeech(lang, summaryText) {
     synth.cancel();
     const req = ++summaryReqRef.current;
     // Waits for the voice list to load before choosing a voice.
-    const teVoice = await getTeluguVoice(synth);
+    const voice = await getLangVoice(synth, lang);
     if (req !== summaryReqRef.current) return;
-    const u = new window.SpeechSynthesisUtterance(summaryText);
-    if (teVoice) {
-      u.voice = teVoice;
-      u.lang = "te-IN";
-    } else {
+    const useTelugu = lang === "te" && Boolean(voice);
+    const u = new window.SpeechSynthesisUtterance(useTelugu ? summaryText : fallbackText);
+    u.lang = useTelugu ? "te-IN" : voice?.lang || "en-IN";
+    if (voice && (useTelugu || lang === "en")) u.voice = voice;
+    if (lang === "te" && !voice) {
       // No Telugu voice: say so, then speak the English summary for this tap only.
-      u.lang = "en-IN";
       setSpeechMsg(t("telugu_voice_missing", lang));
     }
     utterRef.current = u;

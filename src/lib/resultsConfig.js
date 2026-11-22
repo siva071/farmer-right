@@ -46,6 +46,5 @@ export const DECODER = [
   },
 ];
 
-export const CARD = "rounded-2xl border border-[#E3E6DF] bg-surface p-4";
-export const OUTLINE_BTN =
-  "w-full min-h-[56px] rounded-full border border-[#1B5E20] bg-surface px-4 text-[18px] font-semibold text-[#1B5E20]";
+export const CARD = "analysis-card";
+export const OUTLINE_BTN = "secondary-button";
