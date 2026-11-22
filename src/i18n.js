@@ -106,6 +106,17 @@ export const STRINGS = {
   ready: { te: "సిద్ధం", en: "Ready" },
   still_needed: { te: "ఇంకా కావాలి", en: "Still needed" },
   ready_to_apply: { te: "అప్లై చేయడానికి రెడీ", en: "Ready to apply" },
+  mark_applied: { te: "అప్లై చేశాను", en: "Mark as applied" },
+  mark_applied_hint: {
+    te: "అప్లై చేసిన తర్వాత గుర్తు పెట్టండి",
+    en: "Mark this once you apply",
+  },
+  applied_status: { te: "అప్లై చేశారు", en: "Applied" },
+  undo_applied: { te: "రద్దు చేయండి", en: "Undo" },
+  applied_count: {
+    te: "{total} లో {done} అప్లై",
+    en: "{done} of {total} applied",
+  },
   deadline_left: {
     te: "అప్లై చేయడానికి {days} రోజులు మిగిలాయి — {date}",
     en: "Apply by {date} — {days} days left",

@@ -11,8 +11,10 @@ import {
   wholeDaysLeft,
 } from "../../lib/resultsHelpers.js";
 
-export default function SchemeCard({ r, s, lang, tenure, crop }) {
+export default function SchemeCard({ r, s, lang, tenure, crop, applied = [], onToggleApplied }) {
   const name = bi(lang, s?.name_te, s?.name_en) || r.id;
+  const trackable = r.group === "likely" || r.group === "maybe";
+  const isApplied = trackable && applied.includes(r.id);
   const other = lang === "en" ? s?.name_te : s?.name_en;
   const benefitText =
     r.group === "superseded"
@@ -36,6 +38,27 @@ export default function SchemeCard({ r, s, lang, tenure, crop }) {
           </span>
         )}
       </div>
+
+      {trackable && (
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-outline bg-[#F8FAF5] px-3 py-2">
+          {isApplied ? (
+            <span className="chip bg-[#DCFCE7] text-[#15803D]">{t("applied_status", lang)}</span>
+          ) : (
+            <span className="text-[14px] font-semibold text-muted">{t("mark_applied_hint", lang)}</span>
+          )}
+          <button
+            type="button"
+            onClick={() => onToggleApplied?.(r.id)}
+            className={`shrink-0 rounded-full px-3 py-1.5 text-[14px] font-bold transition ${
+              isApplied
+                ? "border border-primary bg-primary text-white"
+                : "border border-primary bg-surface text-primary"
+            }`}
+          >
+            {isApplied ? t("undo_applied", lang) : t("mark_applied", lang)}
+          </button>
+        </div>
+      )}
 
       <div className="space-y-1">
         <h3 className="text-[21px] font-bold leading-8 text-ink">{name}</h3>

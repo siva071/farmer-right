@@ -13,8 +13,8 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
   const [heard, setHeard] = useState("");
   const speakTokenRef = useRef(0);
   const recRef = useRef(null);
-  // Message ids already shown this run. The hook stays mounted across steps, so each
-  // message appears at most once per page session (a fresh mount resets it).
+  // Ids already shown this run. Only the missing-Telugu-voice notice is once-per-session;
+  // availability errors must be visible on every question.
   const shownRef = useRef(new Set());
   const once = (id) => {
     if (shownRef.current.has(id)) return false;
@@ -22,7 +22,7 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
     return true;
   };
   const showUnavailable = (setter) => {
-    if (once("voice_unavailable")) setter(t("voice_unavailable", lang));
+    setter(t("voice_unavailable", lang));
   };
   const SR = typeof window !== "undefined" ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
   const voiceHelpOn = localStorage.getItem("rh.voiceHelp") === "yes";
@@ -44,6 +44,7 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
     if (!normalizeSpeech(text)) return;
     const idx = matchOption(text, options);
     if (idx >= 0) {
+      setVoiceMsg("");
       onPick(options[idx]);
       return;
     }
@@ -75,11 +76,14 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
     const prompt = useTelugu ? step.prompt.te : step.prompt.en;
     const text = options.length ? `${prompt}. ${optionListText(options, spokenLang)}` : prompt;
     let timer = null;
+    let startTimer = null;
+    let started = false;
     let finished = false;
     const finish = (ok) => {
       if (finished || token !== speakTokenRef.current) return;
       finished = true;
       clearTimeout(timer);
+      clearTimeout(startTimer);
       setSpeaking(false);
       if (ok) onDone();
       else onFail();
@@ -89,14 +93,23 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
       const u = new Utter(text);
       u.lang = useTelugu ? "te-IN" : voice?.lang || "en-IN";
       if (voice && (useTelugu || lang === "en")) u.voice = voice;
+      u.onstart = () => {
+        started = true;
+        clearTimeout(startTimer);
+      };
       u.onend = () => finish(true);
       u.onerror = () => finish(false);
       setSpeaking(true);
       if (timeoutMs) timer = setTimeout(() => finish(true), timeoutMs);
+      // If speech never starts (blocked, no voice, suspended), start listening soon anyway.
+      startTimer = setTimeout(() => {
+        if (!started) finish(true);
+      }, 2000);
       synth.speak(u);
     } catch {
       finished = true;
       clearTimeout(timer);
+      clearTimeout(startTimer);
       setSpeaking(false);
       onFail();
     }
@@ -117,13 +130,21 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
       showUnavailable(setVoiceMsg);
       return;
     }
+    // Stop any previous session first; its late events are ignored via the recRef check below.
+    try {
+      recRef.current?.abort?.();
+    } catch {
+      // already stopped
+    }
     const rec = new SR();
     rec.lang = lang === "te" ? "te-IN" : "en-IN";
     rec.interimResults = false;
     rec.maxAlternatives = 1;
     let gotResult = false;
     let handled = false;
+    const isCurrent = () => recRef.current === rec;
     rec.onresult = (e) => {
+      if (!isCurrent()) return;
       const transcript = e.results?.[0]?.[0]?.transcript ?? "";
       gotResult = Boolean(transcript.trim());
       setHeard(transcript);
@@ -133,10 +154,12 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
       handleVoice(transcript);
     };
     rec.onend = () => {
+      if (!isCurrent()) return;
       setListening(false);
-      if (!gotResult) showUnavailable(setVoiceMsg);
+      if (!gotResult) setVoiceMsg(t("voice_no_match", lang));
     };
     rec.onerror = () => {
+      if (!isCurrent()) return;
       setListening(false);
       showUnavailable(setVoiceMsg);
     };
@@ -145,9 +168,16 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
     try {
       rec.start();
     } catch {
+      if (recRef.current === rec) recRef.current = null;
       setListening(false);
       showUnavailable(setVoiceMsg);
     }
+  };
+
+  // Speech failed or never started: still open the mic so the user can answer by voice.
+  const onSpeechFail = () => {
+    showUnavailable(setVoiceMsg);
+    startRecognition();
   };
 
   // Mic tap: speak the question and options first, then listen.
@@ -158,15 +188,11 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
       showUnavailable(setVoiceMsg);
       return;
     }
-    speakQuestion(
-      startRecognition,
-      () => showUnavailable(setVoiceMsg),
-      15000,
-    );
+    speakQuestion(startRecognition, onSpeechFail, 15000);
   };
 
-  // Voice help on: read each question aloud when its screen opens, then start the mic only
-  // if the speech finished. A blocked or failed speech shows voice_unavailable and no mic.
+  // Voice help on: read each question aloud when its screen opens, then start the mic.
+  // If speech cannot play, listening still starts (with a visible message) after ~2s.
   // Runs on mount and on each step change; the speaker and mic buttons still work.
   useEffect(() => {
     recRef.current?.abort?.();
@@ -176,11 +202,7 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
     setVoiceMsg("");
     setSpeakMsg("");
     if (!voiceHelpOn) return;
-    speakQuestion(
-      startRecognition,
-      () => showUnavailable(setVoiceMsg),
-      15000,
-    );
+    speakQuestion(startRecognition, onSpeechFail, 15000);
   }, [index, lang]);
 
   return { SR, voiceHelpOn, listening, voiceMsg, speaking, speakMsg, heard, speakButton, startVoice };

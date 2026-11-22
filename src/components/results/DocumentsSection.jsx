@@ -11,11 +11,22 @@ export default function DocumentsSection({
   lang,
   isDocReady,
   toggleDoc,
+  appliedCount = 0,
+  appliedTotal = 0,
 }) {
   return (
     <section className={`${CARD} space-y-4`}>
       <div className="space-y-1">
-        <h2 className="section-heading">{t("documents", lang)}</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="section-heading">{t("documents", lang)}</h2>
+          {appliedTotal > 0 && (
+            <span className="chip bg-primary-container text-primary">
+              {t("applied_count", lang)
+                .replace("{done}", String(appliedCount))
+                .replace("{total}", String(appliedTotal))}
+            </span>
+          )}
+        </div>
         <p className="text-[14px] leading-5 text-muted">{t("docs_hint", lang)}</p>
       </div>
       <div className="space-y-4">

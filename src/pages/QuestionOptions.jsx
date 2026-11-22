@@ -50,7 +50,7 @@ export default function QuestionOptions({
         </option>
         {districts.map((d) => (
           <option key={d.value} value={d.value}>
-            {d.te}
+            {labelOf(d, lang)}
           </option>
         ))}
       </select>

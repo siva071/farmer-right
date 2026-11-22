@@ -10,6 +10,7 @@ import { scrollScreenToElement } from "../lib/scrollScreen.js";
 import { ANSWERS_KEY, GROUP_ORDER, HELPER_KEY, OUTLINE_BTN } from "../lib/resultsConfig.js";
 import { bi, docForTenure, documentsFor, groupLabel, money, readHelper } from "../lib/resultsHelpers.js";
 import { openChecklistWindow } from "../lib/resultsPrint.js";
+import { useAppliedSchemes } from "../lib/useAppliedSchemes.js";
 import { useResultsSpeech } from "../lib/useResultsSpeech.js";
 import BlockersSection from "../components/results/BlockersSection.jsx";
 import SchemeGroups from "../components/results/SchemeGroups.jsx";
@@ -27,6 +28,7 @@ export default function Results({ lang, answers, onNavigate }) {
   const [docDone, setDocDone] = useState({});
   // Print status shown near the checklist button.
   const [printMsg, setPrintMsg] = useState("");
+  const { applied, toggleApplied } = useAppliedSchemes();
   const heroRef = useRef(null);
 
   // Derived data runs before the early returns so every hook runs each render; empty until loaded.
@@ -45,6 +47,9 @@ export default function Results({ lang, answers, onNavigate }) {
   const tenure = answers?.tenure;
   const docsFor = (r) => documentsFor(schemes[r.id], tenure);
   const docResults = ordered.filter((r) => docsFor(r).length > 0);
+  // Manual "Mark as applied" applies to Likely and May-be cards only.
+  const eligibleIds = [...groups.likely, ...groups.maybe].map((r) => r.id);
+  const appliedCount = eligibleIds.filter((id) => applied.includes(id)).length;
   // Ready = a tap overrides the default; with no tap yet, the CCRC card is Ready when has_ccrc is true.
   const ccrcYes = answers?.has_ccrc === true;
   const isDocReady = (key, d) =>
@@ -208,7 +213,15 @@ export default function Results({ lang, answers, onNavigate }) {
         <BlockersSection blockers={blockers} blockedTotal={blockedTotal} schemes={schemes} lang={lang} />
       )}
 
-      <SchemeGroups groups={groups} schemes={schemes} lang={lang} tenure={tenure} crop={answers?.crop} />
+      <SchemeGroups
+        groups={groups}
+        schemes={schemes}
+        lang={lang}
+        tenure={tenure}
+        crop={answers?.crop}
+        applied={applied}
+        onToggleApplied={toggleApplied}
+      />
 
       {docResults.length > 0 && (
         <DocumentsSection
@@ -219,6 +232,8 @@ export default function Results({ lang, answers, onNavigate }) {
           lang={lang}
           isDocReady={isDocReady}
           toggleDoc={toggleDoc}
+          appliedCount={appliedCount}
+          appliedTotal={eligibleIds.length}
         />
       )}
 
