@@ -7,6 +7,8 @@
 **Live:** https://farmer-right.onrender.com
 **Repo:** https://github.com/siva071/farmer-right
 
+Built easy to access and simple — mobile-friendly, so any farmer can use it on their own phone, with big tap targets and one question per screen. No app to install
+
 Farmer Right (Rythu Hakku) helps small farmers in Andhra Pradesh find out which government schemes they likely qualify for — in plain English and Telugu, in two minutes, without paying a middleman and without sharing Aadhaar or bank details.
 
 > "Middlemen ki ₹500 ivvalsina pani ledhu — free ga, Telugu lo, 2 nimishallo."
