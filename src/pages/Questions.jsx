@@ -72,6 +72,24 @@ export default function Questions({ lang, answers, setAnswers, onBack, onDone })
   // District is picked from a select, so it is not read or matched by voice.
   const spokenOptions = step.type === "district" ? [] : optionsFor(step);
 
+  const goNext = () => {
+    if (index >= total - 1) onDone();
+    else setIndex((i) => i + 1);
+  };
+
+  const goBack = () => {
+    if (index === 0) onBack();
+    else setIndex((i) => i - 1);
+  };
+
+  const voicePick = (opt) => {
+    choose(step, opt);
+    const completesAbout =
+      step.type === "about" &&
+      ((opt.k === "gender" && answers.category) || (opt.k === "category" && answers.gender));
+    if (step.type === "single" || step.type === "bool" || completesAbout) goNext();
+  };
+
   const {
     SR,
     listening,
@@ -86,54 +104,54 @@ export default function Questions({ lang, answers, setAnswers, onBack, onDone })
     step,
     index,
     options: spokenOptions,
-    onPick: (opt) => choose(step, opt),
+    onPick: voicePick,
     onNote: (text) => patch({ notes: text }),
   });
-
-  const goNext = () => {
-    if (index >= total - 1) onDone();
-    else setIndex((i) => i + 1);
-  };
-
-  const goBack = () => {
-    if (index === 0) onBack();
-    else setIndex((i) => i - 1);
-  };
 
   const canContinue = isAnswered(step) || Boolean(step.textarea && (answers.notes || "").trim());
   const promptText = labelOf(step.prompt, lang);
 
   return (
-    <div ref={cardRef} className="max-w-[390px] mx-auto px-4 py-6 pb-40 space-y-6">
-      <div className="space-y-2">
-        <div className="flex justify-between text-sm text-muted">
-          <span>{t("step_of", lang)} {index + 1}/{total}</span>
-        </div>
-        <div
-          role="progressbar"
-          aria-valuemin={1}
-          aria-valuemax={total}
-          aria-valuenow={index + 1}
-          className="h-2 w-full rounded-full bg-outline overflow-hidden"
-        >
+    <div ref={cardRef} className="app-page max-w-[390px] mx-auto">
+      <section className="surface-card space-y-4">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-semibold text-muted">
+              {t("step_of", lang)} {index + 1}/{total}
+            </span>
+            <span className="chip bg-primary-container text-primary">
+              {Math.round(((index + 1) / total) * 100)}%
+            </span>
+          </div>
           <div
-            className="h-2 rounded-full bg-primary"
-            style={{ width: `${((index + 1) / total) * 100}%` }}
-          />
+            role="progressbar"
+            aria-valuemin={1}
+            aria-valuemax={total}
+            aria-valuenow={index + 1}
+            className="h-2.5 w-full overflow-hidden rounded-full bg-[#E7EBE3]"
+          >
+            <div
+              className="h-full rounded-full bg-primary transition-all duration-300"
+              style={{ width: `${((index + 1) / total) * 100}%` }}
+            />
+          </div>
         </div>
-      </div>
 
-      <div className="flex items-start justify-between gap-3">
-        <h2 className="text-[20px] leading-7 font-semibold text-ink">{promptText}</h2>
-        <button
-          type="button"
-          onClick={speakButton}
-          className="shrink-0 min-h-[48px] px-3 rounded-full border border-[#1B5E20] text-[15px] font-semibold text-[#1B5E20]"
-        >
-          {speaking ? t("speaking", lang) : `🔊 ${t("speak_question", lang)}`}
-        </button>
-      </div>
-      {speakMsg && <p className="text-sm">{speakMsg}</p>}
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <p className="section-kicker">{t("step_of", lang)} {index + 1}</p>
+            <h2 className="text-[22px] leading-8 font-bold text-ink">{promptText}</h2>
+          </div>
+          <button
+            type="button"
+            onClick={speakButton}
+            className="shrink-0 min-h-[48px] rounded-full border border-primary bg-primary-container px-4 text-[15px] font-bold text-primary"
+          >
+            {speaking ? t("speaking", lang) : `🔊 ${t("speak_question", lang)}`}
+          </button>
+        </div>
+        {speakMsg && <p className="text-sm font-medium text-muted">{speakMsg}</p>}
+      </section>
 
       <QuestionOptions
         step={step}
@@ -147,49 +165,49 @@ export default function Questions({ lang, answers, setAnswers, onBack, onDone })
         patch={patch}
       />
 
-      {heard && (
-        <p className="text-[17px] leading-6 text-ink">
-          {t("heard_label", lang)} {heard}
-        </p>
+      {(heard || voiceMsg) && (
+        <section className="soft-panel space-y-2">
+          {heard && (
+            <p className="text-[16px] leading-6 text-ink">
+              <span className="font-bold">{t("heard_label", lang)}</span> {heard}
+            </p>
+          )}
+          {voiceMsg && <p className="text-[15px] leading-6 text-muted">{voiceMsg}</p>}
+        </section>
       )}
 
-      <div className="flex items-center justify-between pt-2">
-        <button
-          type="button"
-          onClick={goBack}
-          className="min-h-[48px] px-2 text-muted underline"
-        >
+      <div className="bottom-action-bar mt-auto flex items-center gap-3">
+        <button type="button" onClick={goBack} className="ghost-button shrink-0 px-2">
           {t("back", lang)}
         </button>
         <button
           type="button"
           onClick={goNext}
           disabled={!canContinue}
-          className="min-h-[48px] px-6 rounded-full bg-primary text-white font-semibold text-[17px] disabled:bg-outline disabled:text-muted"
+          className="primary-button flex-1"
         >
           {t("continue", lang)}
         </button>
-      </div>
-
-      {SR && (
-        <div className="fixed bottom-4 right-4 flex flex-col items-center gap-1 z-10">
+        {SR && (
           <button
             type="button"
             onClick={startVoice}
             aria-label={t("mic_label", lang)}
-            className="w-16 h-16 rounded-full bg-primary text-white text-[22px] shadow-md flex items-center justify-center"
+            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary text-[22px] text-white shadow-[0_10px_24px_rgba(27,94,32,0.22)] transition"
           >
             {listening || speaking ? "…" : "🎤"}
           </button>
-          <span className="text-sm font-semibold text-ink bg-surface rounded px-2 py-0.5 shadow-sm">
-            {speaking
-              ? t("speaking", lang)
-              : listening
-                ? t("mic_listening", lang)
-                : t("mic_label", lang)}
-          </span>
-          {voiceMsg && <p className="text-sm">{voiceMsg}</p>}
-        </div>
+        )}
+      </div>
+
+      {SR && (listening || speaking) && (
+        <p className="text-center text-sm font-semibold text-primary">
+          {speaking
+            ? t("speaking", lang)
+            : listening
+              ? t("mic_listening", lang)
+              : t("mic_label", lang)}
+        </p>
       )}
     </div>
   );

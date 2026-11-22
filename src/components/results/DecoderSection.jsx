@@ -1,5 +1,5 @@
 import { t } from "../../i18n.js";
-import { CARD } from "../../lib/resultsConfig.js";
+import { CARD, DECODER } from "../../lib/resultsConfig.js";
 import { bi, docForTenure } from "../../lib/resultsHelpers.js";
 
 // Status decoder: what each pending issue means, where to go, and which document to bring.

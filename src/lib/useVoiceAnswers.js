@@ -65,8 +65,8 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
     // Waits for the voice list to load; a newer tap supersedes this one.
     const voice = await getLangVoice(synth, lang);
     if (token !== speakTokenRef.current) return;
-    const useTelugu = lang === "te" && Boolean(voice);
-    if (lang === "te" && !voice && once("telugu_voice_missing")) {
+    const useTelugu = lang === "te";
+    if (useTelugu && !voice && once("telugu_voice_missing")) {
       const msg = t("telugu_voice_missing", lang);
       setSpeakMsg(msg);
       setVoiceMsg(msg);

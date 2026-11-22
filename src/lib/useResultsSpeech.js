@@ -23,7 +23,7 @@ export function useResultsSpeech(lang, summaryText, fallbackText = summaryText) 
     // Waits for the voice list to load before choosing a voice.
     const voice = await getLangVoice(synth, lang);
     if (req !== summaryReqRef.current) return;
-    const useTelugu = lang === "te" && Boolean(voice);
+    const useTelugu = lang === "te";
     const u = new window.SpeechSynthesisUtterance(useTelugu ? summaryText : fallbackText);
     u.lang = useTelugu ? "te-IN" : voice?.lang || "en-IN";
     if (voice && (useTelugu || lang === "en")) u.voice = voice;
