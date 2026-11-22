@@ -27,22 +27,22 @@ export function groupLabel(lang, g) {
 // Owners hold the land (own / rofr); anyone else is treated as a tenant.
 export const isOwnerTenure = (tenure) => tenure === "own" || tenure === "rofr";
 
-// Land documents: owners see the pattadar passbook, tenants see the CCRC card.
+// Land documents: owners see the land ownership passbook, tenants see the CCRC card.
 const LAND_DOC_EN = [
-  "Land records / pattadar passbook or CCRC",
+  "Land records / land ownership passbook or CCRC",
   "Land record or CCRC",
-  "Pattadar passbook",
+  "Land ownership passbook",
 ];
 export function docForTenure(d, tenure) {
   if (!LAND_DOC_EN.includes(d.en)) return d;
   return isOwnerTenure(tenure)
-    ? { te: t("pattadar_passbook", "te"), en: "Pattadar passbook" }
+    ? { te: t("pattadar_passbook", "te"), en: "Land ownership passbook" }
     : { te: t("ccrc_card", "te"), en: "CCRC card" };
 }
 
-// Owners do not get the tenant-only "Get CCRC (tenants)" step.
+// Owners do not get tenant-only steps such as the CCRC step.
 export function stepsFor(s, tenure) {
-  return (s?.steps ?? []).filter((x) => !(isOwnerTenure(tenure) && x.en === "Get CCRC (tenants)"));
+  return (s?.steps ?? []).filter((x) => !(isOwnerTenure(tenure) && x.tenant_only));
 }
 
 // Whole days from today (local calendar date) to a YYYY-MM-DD date. Negative once passed.

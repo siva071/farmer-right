@@ -3,7 +3,7 @@
 // options in a combined screen (gender + category on one screen).
 
 export const TENURE = [
-  { value: "own", te: "పట్టా/సొంత భూమి", en: "Own land (pattadar)" },
+  { value: "own", te: "పట్టా/సొంత భూమి", en: "Own land in your name" },
   { value: "rofr", te: "RoFR", en: "RoFR" },
   { value: "tenant", te: "కౌలు", en: "Leased (tenant)" },
   { value: "none", te: "భూమి లేదు", en: "No land" },
@@ -91,7 +91,7 @@ export const STEPS = [
   { id: "excluded", key: "excluded", type: "multi", exclusive: "none", options: EXCLUDED,
     prompt: { te: "మీ ఇంట్లో ఎవరైనా ఉన్నారా?", en: "Does anyone in your household have any of these?" } },
   { id: "about", type: "about",
-    prompt: { te: "మీరు?", en: "You are?" } },
+    prompt: { te: "మీరు?", en: "Which option describes you?" } },
   { id: "crop", key: "crop", type: "single", options: CROPS,
     prompt: { te: "ఈ సీజన్‌లో ప్రధాన పంట ఏది?", en: "Which is your main crop this season?" } },
   { id: "district", key: "district", type: "district",

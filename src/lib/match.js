@@ -146,12 +146,26 @@ export function evaluateSchemes(answers, schemes, now = new Date()) {
   const pmKisan = list.find((s) => s.id === "pm_kisan");
   const pmKisanAmount = pmKisan?.benefit_per_year ?? PM_KISAN_FALLBACK;
   const pmKisanLikely = base.some((r) => r.id === "pm_kisan" && r.group === "likely");
+  const annadataGroup = base.find((r) => r.id === "annadata_sukhibhava")?.group;
 
   return base.map((r) => {
     const s = r._scheme;
     const isAnnadata = s.benefit_by_tenure != null;
     let benefit = 0;
     let blocked = 0;
+    let fixes = r.fixes;
+
+    // PM-KISAN's tenant fix may only promise the Annadata amount when Annadata is Likely.
+    if (r.id === "pm_kisan" && annadataGroup !== "likely") {
+      fixes = fixes.map((f) =>
+        /Annadata gives you ₹20,000/.test(f.en || "")
+          ? {
+              te: "మీ రైతు సేవా కేంద్రం (RSK) వద్ద తదుపరి చర్యలు తనిఖీ చేయండి",
+              en: "Check at your Rythu Seva Kendram (RSK) for what to do next",
+            }
+          : f,
+      );
+    }
 
     if (s.counts_as_cash) {
       if (r.group === "likely") {
@@ -168,7 +182,7 @@ export function evaluateSchemes(answers, schemes, now = new Date()) {
       id: r.id,
       group: r.group,
       reasons: r.reasons,
-      fixes: r.fixes,
+      fixes,
       benefit_per_year: benefit,
       blocked_per_year: blocked,
       documents: r.documents,

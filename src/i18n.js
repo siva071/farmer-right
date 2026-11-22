@@ -1,6 +1,6 @@
 // UI strings. Every key has Telugu (te) and English (en).
 export const STRINGS = {
-  app_name: { te: "రైతు హక్కు", en: "Rythu Hakku" },
+  app_name: { te: "రైతు హక్కు", en: "Farmer's Right" },
   start: { te: "ప్రారంభించండి", en: "Start" },
   continue: { te: "కొనసాగించండి", en: "Continue" },
   back: { te: "వెనక్కి", en: "Back" },
@@ -33,7 +33,7 @@ export const STRINGS = {
     te: "ఇది రైతుల కోసం ఉచిత సాయం. లాగిన్ అవసరం లేదు. ఆధార్ గానీ బ్యాంక్ నంబర్ గానీ అడగదు.",
     en: "Free help for farmers. No login. Never asks for Aadhaar or bank numbers.",
   },
-  mic_label: { te: "మాట్లాడండి / Speak", en: "Matladandi / Speak" },
+  mic_label: { te: "మాట్లాడండి / Speak", en: "Speak" },
   mic_listening: { te: "వింటున్నాను...", en: "Listening..." },
   voice_unavailable: { te: "ఈ ఫోన్‌లో వాయిస్ పనిచేయడం లేదు", en: "Voice not available on this device" },
   telugu_voice_missing: {
@@ -55,7 +55,7 @@ export const STRINGS = {
   voice_help_on: { te: "ఆన్", en: "On" },
   voice_help_off: { te: "ఆఫ్", en: "Off" },
   print_no_popup: { te: "చెక్‌లిస్ట్ చూడాలంటే బ్రౌజర్‌లో పాప్-అప్‌లకు అనుమతి ఇవ్వండి", en: "Allow pop-ups to open the checklist" },
-  naa_placeholder: { te: "Naa gurinchi cheptha", en: "Naa gurinchi cheptha" },
+  naa_placeholder: { te: "Naa gurinchi cheptha", en: "Tell us about yourself" },
   results_title: { te: "ఫలితాలు", en: "Results" },
   results_loading: { te: "లోడ్ అవుతోంది...", en: "Loading..." },
   results_error: { te: "పథకాల సమాచారం రాలేదు", en: "Could not load scheme data" },
@@ -115,7 +115,7 @@ export const STRINGS = {
     te: "మీ జిల్లా ప్రకటన చూడండి — pmfby.gov.in",
     en: "Check your district notification — pmfby.gov.in",
   },
-  pattadar_passbook: { te: "పట్టాదారు పాస్‌బుక్", en: "Pattadar passbook" },
+  pattadar_passbook: { te: "పట్టాదారు పాస్‌బుక్", en: "Land ownership passbook" },
   ccrc_card: { te: "CCRC కార్డు", en: "CCRC card" },
   decoder_title: { te: "నాకు ₹2,000 ఎందుకు రాలేదు?", en: "Why didn't I get my ₹2,000?" },
   office_label: { te: "ఎక్కడ వెళ్ళాలి:", en: "Office:" },
@@ -146,7 +146,7 @@ const LANG_KEY = "rh.lang";
 export function getStoredLang() {
   try {
     const v = localStorage.getItem(LANG_KEY);
-    return v === "en" || v === "te" ? v : "te";
+    return v === "en" || v === "te" ? v : "en";
   } catch {
     return "te";
   }

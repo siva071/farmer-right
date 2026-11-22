@@ -82,13 +82,7 @@ export default function Questions({ lang, answers, setAnswers, onBack, onDone })
     else setIndex((i) => i - 1);
   };
 
-  const voicePick = (opt) => {
-    choose(step, opt);
-    const completesAbout =
-      step.type === "about" &&
-      ((opt.k === "gender" && answers.category) || (opt.k === "category" && answers.gender));
-    if (step.type === "single" || step.type === "bool" || completesAbout) goNext();
-  };
+  const voicePick = (opt) => choose(step, opt);
 
   const {
     SR,

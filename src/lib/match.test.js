@@ -36,7 +36,9 @@ test("Venkatesh (tenant with CCRC, 5-10 acres)", () => {
   assert.equal(annadata.group, "likely");
   assert.equal(annadata.benefit_per_year, 20000);
 
-  assert.equal(byId(results, "pm_kisan").group, "not");
+  const pmKisan = byId(results, "pm_kisan");
+  assert.equal(pmKisan.group, "not");
+  assert.ok(pmKisan.fixes.some((f) => f.en.includes("Annadata gives you ₹20,000")));
 
   assert.equal(totalCashPerYear(results), 20000);
 
@@ -75,7 +77,7 @@ test("Kiran (owner, income-tax payer)", () => {
 
   const pm = byId(results, "pm_kisan");
   assert.equal(pm.group, "not");
-  assert.ok(pm.fixes.some((f) => f.en.includes("Income-tax")));
+  assert.ok(pm.fixes.some((f) => /income tax/i.test(f.en)));
 
   const ranked = blockersRanked(results);
   assert.ok(ranked.length > 0);
@@ -127,6 +129,8 @@ test("tenant in 10c_5a with CCRC is maybe; PM-KISAN is the blocked cash scheme",
   assert.equal(pmKisan.blocked_per_year, 6000);
   assert.equal(totalCashPerYear(results), 0);
   assert.equal(blockersRanked(results)[0]?.id, "pm_kisan");
+  assert.ok(pmKisan.fixes.every((f) => !f.en.includes("₹20,000")));
+  assert.ok(pmKisan.fixes.some((f) => f.en.includes("Rythu Seva Kendram")));
 });
 
 test("seasonFromDate labels", () => {

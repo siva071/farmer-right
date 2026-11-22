@@ -14,6 +14,8 @@ export const PERSONAS = [
       tenure: "own",
       area_band: "10c_5a",
       crop: "groundnut",
+      gender: "man",
+      category: "st",
       district: "Chittoor",
       water: "borewell_pump",
       excluded: ["none"],

@@ -169,6 +169,10 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
   // if the speech finished. A blocked or failed speech shows voice_unavailable and no mic.
   // Runs on mount and on each step change; the speaker and mic buttons still work.
   useEffect(() => {
+    recRef.current?.abort?.();
+    recRef.current = null;
+    setListening(false);
+    setHeard("");
     setVoiceMsg("");
     setSpeakMsg("");
     if (!voiceHelpOn) return;
@@ -177,7 +181,7 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
       () => showUnavailable(setVoiceMsg),
       15000,
     );
-  }, [index]);
+  }, [index, lang]);
 
   return { SR, voiceHelpOn, listening, voiceMsg, speaking, speakMsg, heard, speakButton, startVoice };
 }

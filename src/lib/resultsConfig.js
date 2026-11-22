@@ -35,7 +35,7 @@ export const DECODER = [
     issue_te: "భూమి లింకింగ్ పెండింగ్‌లో ఉంది",
     office: "Rythu Seva Kendram / VAA",
     office_te: "రైతు సేవా కేంద్రం / VAA",
-    document: { en: "Pattadar passbook", te: "పట్టాదారు పాస్‌బుక్" },
+    document: { en: "Land ownership passbook", te: "పట్టాదారు పాస్‌బుక్" },
   },
   {
     issue: "NPCI (bank Aadhaar mapping) pending",

@@ -134,7 +134,7 @@ export default function Results({ lang, answers, onNavigate }) {
   }
 
   function shareWhatsApp() {
-    const text = `Rythu Hakku ${season}: likely eligible — ${
+    const text = `${t("app_name", lang)} ${season}: likely eligible — ${
       likelyNames.join(", ") || "none yet"
     }. ${t("footer_free", "en")}.`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
