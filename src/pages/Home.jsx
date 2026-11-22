@@ -83,8 +83,29 @@ const PERSONAS = [
   },
 ];
 
+// Voice-help choice in localStorage: "yes" or "no". Absent means no choice yet.
+const VOICE_KEY = "rh.voiceHelp";
+function readVoiceHelpChoice() {
+  try {
+    const v = localStorage.getItem(VOICE_KEY);
+    return v === "yes" || v === "no" ? v : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function Home({ lang, setLang, onStart, onPersona }) {
   const [helperOpen, setHelperOpen] = useState(false);
+  const [voiceHelp, setVoiceHelp] = useState(readVoiceHelpChoice);
+
+  const chooseVoiceHelp = (v) => {
+    try {
+      localStorage.setItem(VOICE_KEY, v);
+    } catch {
+      // storage unavailable; choice still applies for this session
+    }
+    setVoiceHelp(v);
+  };
 
   return (
     <div className="max-w-[390px] mx-auto px-4 py-6 space-y-6">
@@ -147,6 +168,37 @@ export default function Home({ lang, setLang, onStart, onPersona }) {
           <p className="text-[15px] leading-6 text-muted px-1">{t("helper_text", lang)}</p>
         )}
       </section>
+
+      <button
+        type="button"
+        aria-pressed={voiceHelp === "yes"}
+        onClick={() => chooseVoiceHelp(voiceHelp === "yes" ? "no" : "yes")}
+        className="w-full min-h-[48px] p-4 rounded-2xl border border-outline bg-surface text-left text-[15px] font-semibold text-ink"
+      >
+        {t("voice_help_toggle", lang)}: {voiceHelp === "yes" ? t("voice_help_on", lang) : t("voice_help_off", lang)}
+      </button>
+
+      {voiceHelp === null && (
+        <section className="space-y-3">
+          <p className="text-[17px] leading-6 font-semibold text-ink">{t("voice_help_q", lang)}</p>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => chooseVoiceHelp("yes")}
+              className="min-h-[48px] rounded-full bg-primary text-white font-semibold text-[17px]"
+            >
+              {t("voice_yes", lang)}
+            </button>
+            <button
+              type="button"
+              onClick={() => chooseVoiceHelp("no")}
+              className="min-h-[48px] rounded-full border border-outline bg-surface text-ink font-semibold text-[17px]"
+            >
+              {t("voice_no", lang)}
+            </button>
+          </div>
+        </section>
+      )}
 
       <button
         type="button"

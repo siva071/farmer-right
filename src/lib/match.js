@@ -1,11 +1,12 @@
 // Rythu Hakku matching engine. Pure functions, no dependencies.
 // Answers: tenure, area_band, excluded[], crop, has_ccrc, always.
+// Date/region helpers live in matchDates.js and are re-exported here.
+export { seasonFromDate, daysUntil, regionForDistrict } from "./matchDates.js";
 
 const AREA_LOWER_ACRES = { lt_10c: 0, "10c_5a": 0.1, "5_10a": 5, gt_10a: 10 };
 const CROP_MIN_ACRES = { betelvine: 0.1, vegetables: 0.5, horticulture: 0.5 };
 const DEFAULT_MIN_ACRES = 1.0;
 const PM_KISAN_FALLBACK = 6000;
-const MS_PER_DAY = 86400000;
 
 // Tenant minimum area. The area band is a range, so its LOWER bound is used
 // as the farmer's acreage. Passes only if that lower bound is above zero and
@@ -193,31 +194,3 @@ export function blockersRanked(results) {
     .sort((a, b) => b.blocked_per_year - a.blocked_per_year);
 }
 
-function pad2(n) {
-  return String(n).padStart(2, "0");
-}
-
-// Month is 0-based (Jan = 0). Nov-Mar = Rabi, Jun-Oct = Kharif, Apr-May = Summer.
-export function seasonFromDate(date) {
-  const m = date.getMonth();
-  const y = date.getFullYear();
-  if (m >= 10 || m <= 2) {
-    const start = m >= 10 ? y : y - 1;
-    return { season: "Rabi", label: `Rabi ${start}-${pad2((start + 1) % 100)}` };
-  }
-  if (m >= 5 && m <= 9) return { season: "Kharif", label: `Kharif ${y}` };
-  return { season: "Summer", label: `Summer ${y}` };
-}
-
-export function daysUntil(deadlineIso, now = new Date()) {
-  if (!deadlineIso) return null;
-  const target = Date.parse(deadlineIso);
-  if (Number.isNaN(target)) return null;
-  return Math.ceil((target - now.getTime()) / MS_PER_DAY);
-}
-
-export function regionForDistrict(name, schemesJson) {
-  const map = schemesJson?.district_region;
-  if (!map || !Object.prototype.hasOwnProperty.call(map, name)) return null;
-  return map[name];
-}

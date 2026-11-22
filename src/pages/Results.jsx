@@ -7,6 +7,7 @@ import {
 } from "../lib/match.js";
 
 import { t } from "../i18n.js";
+import { getTeluguVoice } from "../lib/voice.js";
 
 const MS_PER_DAY = 86400000;
 const ANSWERS_KEY = "rh.answers";
@@ -31,6 +32,7 @@ const GROUP_PILL = {
   superseded: "bg-[#F5F5F4] text-[#57534E]",
 };
 const SUPERSEDED_TEXT = "Ee scheme ippudu ledhu — Annadata Sukhibhava chudandi.";
+const SUPERSEDED_TEXT_TE = "ఈ పథకం ఇప్పుడు లేదు — అన్నదాత సుఖీభవ చూడండి";
 const DECODER = [
   {
     issue: "eKYC pending",
@@ -123,16 +125,16 @@ function wholeDaysLeft(iso) {
 
 const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const MONTHS_TE = ["జనవరి", "ఫిబ్రవరి", "మార్చి", "ఏప్రిల్", "మే", "జూన్", "జులై", "ఆగస్టు", "సెప్టెంబర్", "అక్టోబర్", "నవంబర్", "డిసెంబర్"];
-// "2026-11" -> "నవంబర్ 2026"; any other value is returned unchanged. Used only in Telugu mode.
+// "2026-11" or "2026-11-15" -> "నవంబర్ 2026"; any other value is returned unchanged. Used only in Telugu mode.
 function formatVerifiedTe(v) {
-  const m = /^(\d{4})-(\d{2})$/.exec(v || "");
+  const m = /^(\d{4})-(\d{2})(?:-\d{2})?$/.exec(v || "");
   if (!m) return v;
   const mon = MONTHS_TE[Number(m[2]) - 1];
   return mon ? `${mon} ${m[1]}` : v;
 }
-// "2026-11" -> "Nov 2026"; any other value (e.g. a full custom date) is returned unchanged.
+// "2026-11" or "2026-11-15" -> "Nov 2026"; any other value is returned unchanged.
 function formatVerified(v) {
-  const m = /^(\d{4})-(\d{2})$/.exec(v || "");
+  const m = /^(\d{4})-(\d{2})(?:-\d{2})?$/.exec(v || "");
   if (!m) return v;
   const mon = MONTHS_EN[Number(m[2]) - 1];
   return mon ? `${mon} ${m[1]}` : v;
@@ -143,7 +145,7 @@ function SchemeCard({ r, s, lang, tenure, crop }) {
   const other = lang === "en" ? s?.name_te : s?.name_en;
   const benefitText =
     r.group === "superseded"
-      ? SUPERSEDED_TEXT
+      ? (lang === "te" ? SUPERSEDED_TEXT_TE : SUPERSEDED_TEXT)
       : bi(lang, s?.benefit_text_te, s?.benefit_text_en);
   // Paddy farmers use deadline_paddy when it is set. No deadline means no countdown.
   const deadlineIso = s?.deadline ? (crop === "paddy" && s.deadline_paddy) || s.deadline : null;
@@ -222,6 +224,7 @@ function SchemeCard({ r, s, lang, tenure, crop }) {
 
 export default function Results({ lang, answers, onNavigate }) {
   const hasAnswers = Boolean(answers) && Object.keys(answers).length > 0;
+  const voiceHelpOn = localStorage.getItem("rh.voiceHelp") === "yes";
   const [state, setState] = useState({ status: "loading", results: [], schemes: {}, message: "" });
   const [helper, setHelper] = useState(readHelper);
   // Document tap state: key is `${schemeId}:${index}`, true = Ready. All start Still needed.
@@ -230,6 +233,8 @@ export default function Results({ lang, answers, onNavigate }) {
   const [speaking, setSpeaking] = useState(false);
   const [speechMsg, setSpeechMsg] = useState("");
   const utterRef = useRef(null);
+  // Bumped by each Listen tap and by Stop, so a pending voice lookup can be dropped.
+  const summaryReqRef = useRef(0);
   const [printMsg, setPrintMsg] = useState("");
   const heroRef = useRef(null);
 
@@ -323,7 +328,7 @@ export default function Results({ lang, answers, onNavigate }) {
   const summaryText = `${season}. Total ${money(total)} per year. Likely eligible: ${
     likelyNames.join(", ") || "none"
   }.`;
-  function speakSummary() {
+  async function speakSummary() {
     if (!("speechSynthesis" in window) || !window.SpeechSynthesisUtterance) {
       setSpeechMsg(t("voice_unavailable", lang));
       return;
@@ -331,8 +336,19 @@ export default function Results({ lang, answers, onNavigate }) {
     setSpeechMsg("");
     const synth = window.speechSynthesis;
     synth.cancel();
+    const req = ++summaryReqRef.current;
+    // Waits for the voice list to load before choosing a voice.
+    const teVoice = await getTeluguVoice(synth);
+    if (req !== summaryReqRef.current) return;
     const u = new window.SpeechSynthesisUtterance(summaryText);
-    u.lang = "te-IN";
+    if (teVoice) {
+      u.voice = teVoice;
+      u.lang = "te-IN";
+    } else {
+      // No Telugu voice: say so, then speak the English summary for this tap only.
+      u.lang = "en-IN";
+      setSpeechMsg(t("telugu_voice_missing", lang));
+    }
     utterRef.current = u;
     // Only the current utterance may clear the speaking state (a cancel fires onerror on the old one).
     u.onend = () => {
@@ -359,6 +375,7 @@ export default function Results({ lang, answers, onNavigate }) {
   }
 
   function stopSpeaking() {
+    summaryReqRef.current += 1;
     utterRef.current = null;
     window.speechSynthesis?.cancel();
     setSpeaking(false);
@@ -572,7 +589,11 @@ export default function Results({ lang, answers, onNavigate }) {
           {t("btn_checklist", lang)}
         </button>
         {printMsg && <p className="text-[14px] text-muted">{printMsg}</p>}
-        <button type="button" onClick={speakSummary} className={OUTLINE_BTN}>
+        <button
+          type="button"
+          onClick={speakSummary}
+          className={voiceHelpOn ? `${OUTLINE_BTN} ring-2 ring-[#1B5E20]` : OUTLINE_BTN}
+        >
           {speaking ? t("speaking", lang) : t("btn_listen", lang)}
         </button>
         {speaking && (
