@@ -102,7 +102,7 @@ function evaluateOne(scheme, ctx) {
     group === "not"
       ? [
           ...firedNot.filter((r) => r.hide_why !== true).map(blockingReason),
-          ...failing.map(failedMatchReason).filter(Boolean),
+          ...failing.filter((r) => r.hide_why !== true).map(failedMatchReason).filter(Boolean),
         ]
       : passing.filter((r) => r.hide_why !== true).map((r) => ({ te: r.reason_te, en: r.reason_en, rule_id: r.id }));
 
@@ -110,7 +110,11 @@ function evaluateOne(scheme, ctx) {
     .filter((r) => r.fix_te || r.fix_en)
     .map((r) => ({ te: r.fix_te, en: r.fix_en }));
   if (group === "not" && fixes.length === 0 && failing.length > 0) {
-    fixes = [{
+    // A failed match rule's own fix_* is used before the generic RSK line.
+    const failingFixes = failing
+      .filter((r) => r.fix_te || r.fix_en)
+      .map((r) => ({ te: r.fix_te, en: r.fix_en }));
+    fixes = failingFixes.length > 0 ? failingFixes : [{
       te: "మీ రైతు సేవా కేంద్రం (RSK) వద్ద తదుపరి చర్యలు తనిఖీ చేయండి",
       en: "Check at your Rythu Seva Kendram (RSK) for what to do next"
     }];

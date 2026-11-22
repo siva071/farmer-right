@@ -306,7 +306,7 @@ export default function Questions({ lang, answers, setAnswers, onBack, onDone })
     );
   };
 
-  const canContinue = isAnswered(step);
+  const canContinue = isAnswered(step) || Boolean(step.textarea && (answers.notes || "").trim());
   const promptText = labelOf(step.prompt, lang);
 
   return (

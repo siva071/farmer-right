@@ -113,6 +113,31 @@ function SchemeCard({ r, s, lang }) {
             FIX: {bi(lang, x.te, x.en)}
           </p>
         ))}
+      <div className="space-y-1">
+        <p className="text-[14px] font-semibold text-muted">How to apply</p>
+        {s?.steps?.length > 0 ? (
+          <ol className="list-decimal pl-5 text-[17px] leading-6 text-ink">
+            {s.steps.map((x, i) => (
+              <li key={i}>{bi(lang, x.te, x.en)}</li>
+            ))}
+          </ol>
+        ) : (
+          <p className="text-[17px] leading-6 text-muted">No steps are available for this scheme.</p>
+        )}
+      </div>
+      {s?.official_link && (
+        <p className="text-[17px] leading-6 text-ink">
+          <a
+            href={s.official_link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="break-all font-semibold text-[#1B5E20] underline"
+          >
+            {s.official_link}
+          </a>
+          <span className="block text-[14px] text-muted">Last verified Nov 2026</span>
+        </p>
+      )}
     </article>
   );
 }
@@ -121,6 +146,12 @@ export default function Results({ lang, answers, onNavigate }) {
   const hasAnswers = Boolean(answers) && Object.keys(answers).length > 0;
   const [state, setState] = useState({ status: "loading", results: [], schemes: {}, message: "" });
   const [helper, setHelper] = useState(readHelper);
+  // Document tap state: key is `${schemeId}:${index}`, true = Ready. All start Still needed.
+  const [docDone, setDocDone] = useState({});
+  // Speech and print status shown near their buttons.
+  const [speaking, setSpeaking] = useState(false);
+  const [speechMsg, setSpeechMsg] = useState("");
+  const [printMsg, setPrintMsg] = useState("");
 
   useEffect(() => {
     if (!answers || Object.keys(answers).length === 0) return undefined;
@@ -184,25 +215,74 @@ export default function Results({ lang, answers, onNavigate }) {
   const blockers = blockersRanked(results);
   const blockedTotal = blockers.reduce((sum, r) => sum + r.blocked_per_year, 0);
   const likelyNames = groups.likely.map((r) => bi(lang, schemes[r.id]?.name_te, schemes[r.id]?.name_en) || r.id);
-  const docResults = ordered.filter(
-    (r) => r.documents.ready.length + r.documents.still_needed.length > 0,
-  );
+  const tenure = answers?.tenure;
+  // Documents shown per farmer tenure: a document limited to certain tenures is
+  // hidden for others, and the CCRC card is hidden for owners.
+  const docsFor = (r) =>
+    (schemes[r.id]?.documents ?? []).filter((d) => {
+      const w = d.ready_when;
+      if (!w) return true;
+      if (w.field === "tenure") return w.value.includes(tenure);
+      if (w.field === "tenant_ccrc") return tenure !== "own" && tenure !== "rofr";
+      return true;
+    });
+  const docResults = ordered.filter((r) => docsFor(r).length > 0);
   const deadlines = ordered.filter((r) => schemes[r.id]?.deadline);
+
 
   const summaryText = `${season}. Total ${money(total)} per year. Likely eligible: ${
     likelyNames.join(", ") || "none"
   }.`;
-  const speechOk =
-    typeof window !== "undefined" &&
-    "speechSynthesis" in window &&
-    "SpeechSynthesisUtterance" in window;
-
   function speakSummary() {
+    if (!("speechSynthesis" in window) || !window.SpeechSynthesisUtterance) {
+      setSpeechMsg(t("voice_unavailable", lang));
+      return;
+    }
+    setSpeechMsg("");
     const synth = window.speechSynthesis;
     synth.cancel();
     const u = new window.SpeechSynthesisUtterance(summaryText);
     u.lang = "te-IN";
+    u.onend = () => setSpeaking(false);
+    u.onerror = () => setSpeaking(false);
+    setSpeaking(true);
     synth.speak(u);
+  }
+
+  function printChecklist() {
+    const w = window.open("", "_blank");
+    if (!w) {
+      setPrintMsg(t("print_no_popup", lang));
+      return;
+    }
+    setPrintMsg("");
+    const esc = (v) =>
+      String(v ?? "").replace(
+        /[&<>"']/g,
+        (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
+      );
+    const docItems = docResults
+      .flatMap((r) => docsFor(r).map((d) => `<li>${esc(bi(lang, d.te, d.en))}</li>`))
+      .join("");
+    const stepsHtml = ordered
+      .map((r) => {
+        const s = schemes[r.id];
+        const name = bi(lang, s?.name_te, s?.name_en) || r.id;
+        const steps = (s?.steps ?? [])
+          .map((x) => `<li>${esc(bi(lang, x.te, x.en))}</li>`)
+          .join("");
+        return `<h2>${esc(name)}</h2><ol>${steps || "<li>No steps are available for this scheme.</li>"}</ol>`;
+      })
+      .join("");
+    const html =
+      '<html><head><meta charset="utf-8"><title>Checklist</title><style>body{font-family:sans-serif;color:#000;background:#fff;padding:20px} li{margin:6px 0}</style></head><body>' +
+      "<h1>Documents checklist</h1>" +
+      `<ul>${docItems}</ul>` +
+      "<h1>How to apply</h1>" +
+      stepsHtml +
+      "</body></html>";
+    w.document.write(html);
+    w.document.close();
   }
 
   function shareWhatsApp() {
@@ -221,6 +301,11 @@ export default function Results({ lang, answers, onNavigate }) {
       // storage unavailable; toggle still works for this session
     }
   }
+
+  function toggleDoc(key) {
+    setDocDone((prev) => ({ ...prev, [key]: !prev[key] }));
+  }
+
 
   function startAgain() {
     try {
@@ -280,42 +365,53 @@ export default function Results({ lang, answers, onNavigate }) {
       {docResults.length > 0 && (
         <section className={`${CARD} space-y-4`}>
           <h2 className="text-[20px] font-semibold leading-7 text-ink">Documents</h2>
-          {docResults.map((r) => (
-            <div key={r.id} className="space-y-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="text-[17px] font-semibold text-ink">
-                  {bi(lang, schemes[r.id]?.name_te, schemes[r.id]?.name_en) || r.id}
-                </p>
-                {r.group === "likely" && r.documents.still_needed.length === 0 && (
-                  <span className="rounded-full bg-[#DCFCE7] px-3 py-1 text-[14px] font-semibold text-[#15803D]">
-                    Ready to apply
-                  </span>
-                )}
+          <p className="text-[14px] leading-5 text-muted">Tap a document to mark it Ready or Still needed.</p>
+          {docResults.map((r) => {
+            const docs = docsFor(r);
+            const allReady = docs.every((_, i) => docDone[`${r.id}:${i}`]);
+            return (
+              <div key={r.id} className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-[17px] font-semibold text-ink">
+                    {bi(lang, schemes[r.id]?.name_te, schemes[r.id]?.name_en) || r.id}
+                  </p>
+                  {r.group === "likely" && allReady && (
+                    <span className="rounded-full bg-[#DCFCE7] px-3 py-1 text-[14px] font-semibold text-[#15803D]">
+                      Ready to apply
+                    </span>
+                  )}
+                </div>
+                <ul className="space-y-2">
+                  {docs.map((d, i) => {
+                    const key = `${r.id}:${i}`;
+                    const ready = Boolean(docDone[key]);
+                    return (
+                      <li key={key}>
+                        <button
+                          type="button"
+                          aria-pressed={ready}
+                          onClick={() => toggleDoc(key)}
+                          className="flex w-full min-h-[48px] items-center justify-between gap-2 rounded-xl border border-[#E3E6DF] bg-surface px-3 py-2 text-left text-[17px] leading-6 text-ink"
+                        >
+                          <span>{bi(lang, d.te, d.en)}</span>
+                          <span
+                            className={`shrink-0 rounded-full px-3 py-1 text-[14px] font-semibold ${
+                              ready ? "bg-[#DCFCE7] text-[#15803D]" : "bg-[#F5F5F4] text-[#57534E]"
+                            }`}
+                          >
+                            {ready ? "Ready" : "Still needed"}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
-              {r.documents.ready.length > 0 && (
-                <div>
-                  <p className="text-[14px] font-semibold text-muted">Ready</p>
-                  <ul className="list-disc pl-5 text-[17px] leading-6 text-ink">
-                    {r.documents.ready.map((d, i) => (
-                      <li key={i}>{bi(lang, d.te, d.en)}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {r.documents.still_needed.length > 0 && (
-                <div>
-                  <p className="text-[14px] font-semibold text-muted">Still needed</p>
-                  <ul className="list-disc pl-5 text-[17px] leading-6 text-ink">
-                    {r.documents.still_needed.map((d, i) => (
-                      <li key={i}>{bi(lang, d.te, d.en)}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </section>
       )}
+
 
       {/* Deadlines */}
       {deadlines.length > 0 && (
@@ -356,14 +452,14 @@ export default function Results({ lang, answers, onNavigate }) {
         >
           WhatsApp share
         </button>
-        <button type="button" onClick={() => window.print()} className={OUTLINE_BTN}>
+        <button type="button" onClick={printChecklist} className={OUTLINE_BTN}>
           Printable checklist
         </button>
-        {speechOk && (
-          <button type="button" onClick={speakSummary} className={OUTLINE_BTN}>
-            Listen to summary
-          </button>
-        )}
+        {printMsg && <p className="text-[14px] text-muted">{printMsg}</p>}
+        <button type="button" onClick={speakSummary} className={OUTLINE_BTN}>
+          {speaking ? t("speaking", lang) : "Listen to summary"}
+        </button>
+        {speechMsg && <p className="text-[14px] text-muted">{speechMsg}</p>}
         <button
           type="button"
           aria-pressed={helper}

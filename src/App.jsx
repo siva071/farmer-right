@@ -47,7 +47,7 @@ export default function App() {
 
   const pickPersona = (personaAnswers) => {
     setAnswers(personaAnswers);
-    go("results");
+    go("questions");
   };
 
   let body;
