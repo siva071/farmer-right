@@ -4,8 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { t } from "../i18n.js";
 import { getLangVoice } from "./voice.js";
 import { matchOption, normalizeSpeech, optionListText } from "./voiceOptions.js";
+import { ordinalPick } from "./voiceOrdinal.js";
 
-export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) {
+export function useVoiceAnswers({ lang, step, index, options, answers, onPick, onNote }) {
   const [listening, setListening] = useState(false);
   const [voiceMsg, setVoiceMsg] = useState("");
   const [speaking, setSpeaking] = useState(false);
@@ -38,11 +39,17 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
     [],
   );
 
+  // Any answer change (manual tap or voice pick) clears a stale "not understood" message.
+  useEffect(() => {
+    setVoiceMsg("");
+  }, [answers]);
+
   // Routes a recognised phrase: a matching option is picked (tap-equivalent); otherwise a
   // textarea step keeps the words as notes, and any other step asks the user to repeat.
   const handleVoice = (text) => {
     if (!normalizeSpeech(text)) return;
-    const idx = matchOption(text, options);
+    let idx = matchOption(text, options);
+    if (idx < 0) idx = ordinalPick(text, options.length);
     if (idx >= 0) {
       setVoiceMsg("");
       onPick(options[idx]);

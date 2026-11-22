@@ -100,6 +100,7 @@ export default function Questions({ lang, answers, setAnswers, onBack, onDone })
     step,
     index,
     options: spokenOptions,
+    answers,
     onPick: voicePick,
     onNote: (text) => patch({ notes: text }),
   });

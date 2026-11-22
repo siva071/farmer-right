@@ -10,8 +10,9 @@ import { scrollScreenToElement } from "../lib/scrollScreen.js";
 import { ANSWERS_KEY, GROUP_ORDER, HELPER_KEY, OUTLINE_BTN } from "../lib/resultsConfig.js";
 import { bi, docForTenure, documentsFor, groupLabel, money, readHelper } from "../lib/resultsHelpers.js";
 import { openChecklistWindow } from "../lib/resultsPrint.js";
-import { useAppliedSchemes } from "../lib/useAppliedSchemes.js";
+import { answersKey, useAppliedSchemes } from "../lib/useAppliedSchemes.js";
 import { useResultsSpeech } from "../lib/useResultsSpeech.js";
+import { buildSpokenSummary } from "../lib/resultsSpeech.js";
 import BlockersSection from "../components/results/BlockersSection.jsx";
 import SchemeGroups from "../components/results/SchemeGroups.jsx";
 import DocumentsSection from "../components/results/DocumentsSection.jsx";
@@ -28,7 +29,7 @@ export default function Results({ lang, answers, onNavigate }) {
   const [docDone, setDocDone] = useState({});
   // Print status shown near the checklist button.
   const [printMsg, setPrintMsg] = useState("");
-  const { applied, toggleApplied } = useAppliedSchemes();
+  const { applied, toggleApplied } = useAppliedSchemes(answersKey(answers));
   const heroRef = useRef(null);
 
   // Derived data runs before the early returns so every hook runs each render; empty until loaded.
@@ -63,7 +64,17 @@ export default function Results({ lang, answers, onNavigate }) {
     .replace("{season}", season)
     .replace("{amount}", money(total))
     .replace("{names}", likelyNamesEn.join(", ") || t("summary_none", "en"));
-  const { speaking, speechMsg, speakSummary, stopSpeaking } = useResultsSpeech(lang, summaryText, summaryTextEn);
+  const spoken = buildSpokenSummary({
+    summary: { te: summaryText, en: summaryTextEn },
+    ordered,
+    schemes,
+    tenure,
+    crop: answers?.crop,
+    blockers,
+    blockedTotal,
+    isDocReady,
+  });
+  const { speaking, speechMsg, speakSummary, stopSpeaking } = useResultsSpeech(lang, spoken.te, spoken.en);
 
   useEffect(() => {
     if (!answers || Object.keys(answers).length === 0) return undefined;
