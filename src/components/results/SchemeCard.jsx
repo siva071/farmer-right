@@ -2,6 +2,7 @@ import { t } from "../../i18n.js";
 import { CARD, GROUP_PILL, SUPERSEDED_TEXT, SUPERSEDED_TEXT_TE } from "../../lib/resultsConfig.js";
 import {
   bi,
+  formatDay,
   formatVerified,
   formatVerifiedTe,
   groupLabel,
@@ -16,9 +17,12 @@ export default function SchemeCard({ r, s, lang, tenure, crop }) {
   const benefitText =
     r.group === "superseded"
       ? (lang === "te" ? SUPERSEDED_TEXT_TE : SUPERSEDED_TEXT)
-      : bi(lang, s?.benefit_text_te, s?.benefit_text_en);
+      : r.group === "not"
+        ? ""
+        : bi(lang, s?.benefit_text_te, s?.benefit_text_en);
   // Paddy farmers use deadline_paddy when it is set. No deadline means no countdown.
   const deadlineIso = s?.deadline ? (crop === "paddy" && s.deadline_paddy) || s.deadline : null;
+  const deadlineText = deadlineIso ? formatDay(deadlineIso, lang) : null;
   const days = deadlineIso ? wholeDaysLeft(deadlineIso) : null;
   const steps = stepsFor(s, tenure);
 
@@ -44,7 +48,7 @@ export default function SchemeCard({ r, s, lang, tenure, crop }) {
             {days < 0
               ? t("deadline_passed", lang)
               : t("deadline_left", lang)
-                  .replace("{date}", deadlineIso)
+                  .replace("{date}", deadlineText)
                   .replace("{days}", String(days))}
           </p>
           {r.id === "pmfby" && (

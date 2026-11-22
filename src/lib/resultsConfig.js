@@ -26,14 +26,14 @@ export const DECODER = [
   {
     issue: "eKYC pending",
     issue_te: "eKYC పెండింగ్‌లో ఉంది",
-    office: "Rythu Seva Kendram / VAA",
+    office: "Rythu Seva Kendram / Village Agriculture Assistant",
     office_te: "రైతు సేవా కేంద్రం / VAA",
     document: { en: "eKYC completed status", te: "eKYC పూర్తయిన స్థితి" },
   },
   {
     issue: "Land seeding pending",
     issue_te: "భూమి లింకింగ్ పెండింగ్‌లో ఉంది",
-    office: "Rythu Seva Kendram / VAA",
+    office: "Rythu Seva Kendram / Village Agriculture Assistant",
     office_te: "రైతు సేవా కేంద్రం / VAA",
     document: { en: "Land ownership passbook", te: "పట్టాదారు పాస్‌బుక్" },
   },

@@ -15,7 +15,6 @@ export default function DocumentsSection({
   return (
     <section className={`${CARD} space-y-4`}>
       <div className="space-y-1">
-        <p className="section-kicker">{t("analysis_title", lang)}</p>
         <h2 className="section-heading">{t("documents", lang)}</h2>
         <p className="text-[14px] leading-5 text-muted">{t("docs_hint", lang)}</p>
       </div>

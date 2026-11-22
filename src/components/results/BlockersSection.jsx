@@ -7,7 +7,6 @@ export default function BlockersSection({ blockers, blockedTotal, schemes, lang 
   return (
     <section className={`${CARD} space-y-4`}>
       <div className="space-y-1">
-        <p className="section-kicker">{t("analysis_title", lang)}</p>
         <h2 className="section-heading">{t("fix_first", lang).replace("{amount}", money(blockedTotal))}</h2>
       </div>
       <div className="space-y-3">

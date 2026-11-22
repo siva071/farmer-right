@@ -47,7 +47,8 @@ test("Venkatesh (tenant with CCRC, 5-10 acres)", () => {
 
   const micro = byId(results, "micro_irrigation_ap");
   assert.equal(micro.group, "maybe");
-  assert.ok(micro.reasons.some((r) => r.en.includes("RSK")));
+  assert.equal(micro.reasons.length, 1);
+  assert.ok(micro.reasons[0].en.includes("subsidy"));
 });
 
 test("Ramesh (owner, 10 cents to 5 acres)", () => {

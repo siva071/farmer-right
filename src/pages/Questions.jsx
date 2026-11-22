@@ -20,7 +20,9 @@ export default function Questions({ lang, answers, setAnswers, onBack, onDone })
 
   const visibleSteps = STEPS.filter((s) => !s.when || s.when(answers));
   const step = visibleSteps[index];
-  const total = visibleSteps.length;
+  const stepCount = visibleSteps.length;
+  // Progress denominator stays at the full step count so it never flips when CCRC appears.
+  const total = STEPS.length;
 
   const optionsFor = (s) => {
     if (s.type === "district") return districts;
@@ -73,7 +75,7 @@ export default function Questions({ lang, answers, setAnswers, onBack, onDone })
   const spokenOptions = step.type === "district" ? [] : optionsFor(step);
 
   const goNext = () => {
-    if (index >= total - 1) onDone();
+    if (index >= stepCount - 1) onDone();
     else setIndex((i) => i + 1);
   };
 

@@ -19,7 +19,6 @@ export default function ActionsSection({
   return (
     <section className="surface-card space-y-3">
       <div className="space-y-1">
-        <p className="section-kicker">{t("analysis_title", lang)}</p>
         <h2 className="section-heading">{t("results_title", lang)}</h2>
       </div>
 

@@ -4,7 +4,7 @@
 
 export const TENURE = [
   { value: "own", te: "పట్టా/సొంత భూమి", en: "Own land in your name" },
-  { value: "rofr", te: "RoFR", en: "RoFR" },
+  { value: "rofr", te: "RoFR", en: "ROFR (forest-rights land record)" },
   { value: "tenant", te: "కౌలు", en: "Leased (tenant)" },
   { value: "none", te: "భూమి లేదు", en: "No land" },
 ];

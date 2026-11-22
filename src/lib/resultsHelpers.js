@@ -72,6 +72,15 @@ export function formatVerified(v) {
   return mon ? `${mon} ${m[1]}` : v;
 }
 
+// "2026-12-15" -> "15 Dec 2026" (en) or "15 డిసెంబర్ 2026" (te).
+export function formatDay(iso, lang) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+  if (!m) return iso;
+  const months = lang === "te" ? MONTHS_TE : MONTHS_EN;
+  const mon = months[Number(m[2]) - 1];
+  return mon ? `${Number(m[3])} ${mon} ${m[1]}` : iso;
+}
+
 // Documents shown per farmer tenure: a document limited to certain tenures is
 // hidden for others, and the CCRC card is hidden for owners.
 export function documentsFor(scheme, tenure) {

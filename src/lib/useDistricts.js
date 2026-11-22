@@ -11,10 +11,11 @@ export function useDistricts() {
       .then((json) => {
         if (cancelled) return;
         const te = json.district_te || {};
+        const en = json.district_en || {};
         const list = Object.keys(json.district_region || {}).map((name) => ({
           value: name,
           te: te[name] || name,
-          en: name,
+          en: en[name] || name,
         }));
         setDistricts(list);
       })
