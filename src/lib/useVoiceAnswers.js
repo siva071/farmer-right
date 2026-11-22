@@ -13,6 +13,17 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
   const [heard, setHeard] = useState("");
   const speakTokenRef = useRef(0);
   const recRef = useRef(null);
+  // Message ids already shown this run. The hook stays mounted across steps, so each
+  // message appears at most once per page session (a fresh mount resets it).
+  const shownRef = useRef(new Set());
+  const once = (id) => {
+    if (shownRef.current.has(id)) return false;
+    shownRef.current.add(id);
+    return true;
+  };
+  const showUnavailable = (setter) => {
+    if (once("voice_unavailable")) setter(t("voice_unavailable", lang));
+  };
   const SR = typeof window !== "undefined" ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
   const voiceHelpOn = localStorage.getItem("rh.voiceHelp") === "yes";
 
@@ -53,8 +64,8 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
     // Waits for the voice list to load; a newer tap supersedes this one.
     const teVoice = await getTeluguVoice(synth);
     if (token !== speakTokenRef.current) return;
-    if (!teVoice) {
-      // No Telugu voice: say so, then speak English for this tap only.
+    if (!teVoice && once("telugu_voice_missing")) {
+      // No Telugu voice: say so once, then speak English for this tap only.
       const msg = t("telugu_voice_missing", lang);
       setSpeakMsg(msg);
       setVoiceMsg(msg);
@@ -94,7 +105,7 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
     setSpeakMsg("");
     speakQuestion(
       () => {},
-      () => setSpeakMsg(t("voice_unavailable", lang)),
+      () => showUnavailable(setSpeakMsg),
       15000,
     );
   };
@@ -102,7 +113,7 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
   // Starts recognition (te-IN). Every exit path clears listening or shows a message.
   const startRecognition = () => {
     if (!SR) {
-      setVoiceMsg(t("voice_unavailable", lang));
+      showUnavailable(setVoiceMsg);
       return;
     }
     const rec = new SR();
@@ -122,11 +133,11 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
     };
     rec.onend = () => {
       setListening(false);
-      if (!gotResult) setVoiceMsg(t("voice_unavailable", lang));
+      if (!gotResult) showUnavailable(setVoiceMsg);
     };
     rec.onerror = () => {
       setListening(false);
-      setVoiceMsg(t("voice_unavailable", lang));
+      showUnavailable(setVoiceMsg);
     };
     recRef.current = rec;
     setListening(true);
@@ -134,7 +145,7 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
       rec.start();
     } catch {
       setListening(false);
-      setVoiceMsg(t("voice_unavailable", lang));
+      showUnavailable(setVoiceMsg);
     }
   };
 
@@ -143,12 +154,12 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
     setVoiceMsg("");
     setHeard("");
     if (!SR) {
-      setVoiceMsg(t("voice_unavailable", lang));
+      showUnavailable(setVoiceMsg);
       return;
     }
     speakQuestion(
       startRecognition,
-      () => setVoiceMsg(t("voice_unavailable", lang)),
+      () => showUnavailable(setVoiceMsg),
       15000,
     );
   };
@@ -162,10 +173,10 @@ export function useVoiceAnswers({ lang, step, index, options, onPick, onNote }) 
     if (!voiceHelpOn) return;
     speakQuestion(
       startRecognition,
-      () => setVoiceMsg(t("voice_unavailable", lang)),
+      () => showUnavailable(setVoiceMsg),
       15000,
     );
   }, [index]);
 
-  return { SR, listening, voiceMsg, speaking, speakMsg, heard, speakButton, startVoice };
+  return { SR, voiceHelpOn, listening, voiceMsg, speaking, speakMsg, heard, speakButton, startVoice };
 }

@@ -95,7 +95,7 @@ export default function App() {
                       type="button"
                       aria-pressed={lang === l}
                       onClick={() => setLang(l)}
-                      className={`px-3 h-10 text-sm font-semibold ${
+                      className={`min-h-[48px] px-4 text-base font-semibold ${
                         lang === l ? "bg-primary-container text-primary" : "bg-surface text-muted"
                       }`}
                     >

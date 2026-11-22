@@ -1,87 +1,7 @@
 import { useState } from "react";
 import { t } from "../i18n.js";
 
-// Answers use the keys read by src/lib/match.js: tenure, area_band, excluded,
-// crop, has_ccrc, plus district, water, gender, category, help.
-const PERSONAS = [
-  {
-    id: "ramesh",
-    name: { te: "రమేష్", en: "Ramesh" },
-    age: 45,
-    place: { te: "చిత్తూరు", en: "Chittoor" },
-    desc: {
-      te: "2 ఎకరాలు సొంత భూమి · వేరుశనగ + టమాటా · బోర్‌వెల్ + విద్యుత్ పంపు",
-      en: "2 acres own · groundnut + tomato · borewell + electric pump",
-    },
-    answers: {
-      tenure: "own",
-      area_band: "10c_5a",
-      crop: "groundnut",
-      district: "Chittoor",
-      water: "borewell_pump",
-      excluded: ["none"],
-    },
-  },
-  {
-    id: "lakshmi",
-    name: { te: "లక్ష్మి", en: "Lakshmi" },
-    age: 38,
-    place: { te: "అనంతపురం", en: "Anantapur" },
-    desc: {
-      te: "0.8 ఎకరం సొంత భూమి · చిరుధాన్యాలు · వర్షాధారం",
-      en: "0.8 acre own · millets · rainfed",
-    },
-    answers: {
-      tenure: "own",
-      area_band: "10c_5a",
-      gender: "woman",
-      category: "sc",
-      crop: "other",
-      district: "Anantapur",
-      water: "rainfed",
-      excluded: ["none"],
-    },
-  },
-  {
-    id: "venkatesh",
-    name: { te: "వెంకటేశ్", en: "Venkatesh" },
-    age: 52,
-    place: { te: "కడప", en: "Kadapa" },
-    desc: {
-      te: "6 ఎకరాలు కౌలు · CCRC ఉంది · వేరుశనగ · కాలువ",
-      en: "6 acres tenant with CCRC · groundnut · canal",
-    },
-    answers: {
-      tenure: "tenant",
-      has_ccrc: true,
-      area_band: "5_10a",
-      gender: "man",
-      category: "sc",
-      crop: "groundnut",
-      district: "YSR Kadapa",
-      water: "canal",
-      excluded: ["none"],
-    },
-  },
-  {
-    id: "kiran",
-    name: { te: "కిరణ్", en: "Kiran" },
-    age: 28,
-    place: { te: "కడప", en: "Kadapa" },
-    desc: {
-      te: "IT ఉద్యోగి · వారసత్వంగా 3 ఎకరాలు · వరి · వర్షాధారం",
-      en: "IT job · inherited 3 acres · paddy · rainfed",
-    },
-    answers: {
-      tenure: "own",
-      area_band: "5_10a",
-      crop: "paddy",
-      district: "YSR Kadapa",
-      water: "rainfed",
-      excluded: ["income_tax", "professional"],
-    },
-  },
-];
+import { PERSONAS } from "../lib/personas.js";
 
 // Voice-help choice in localStorage: "yes" or "no". Absent means no choice yet.
 const VOICE_KEY = "rh.voiceHelp";
@@ -110,7 +30,7 @@ export default function Home({ lang, setLang, onStart, onPersona }) {
   return (
     <div className="max-w-[390px] mx-auto px-4 py-6 space-y-6">
       <section className="space-y-2">
-        <h1 className="text-[24px] leading-8 font-bold text-ink">
+        <h1 className="text-[28px] leading-9 font-bold text-ink">
           {t("home_headline", lang)}
         </h1>
         <p className="text-[17px] leading-6 text-muted">{t("home_pick", lang)}</p>
@@ -185,14 +105,14 @@ export default function Home({ lang, setLang, onStart, onPersona }) {
             <button
               type="button"
               onClick={() => chooseVoiceHelp("yes")}
-              className="min-h-[48px] rounded-full bg-primary text-white font-semibold text-[17px]"
+              className="min-h-[56px] text-[18px] rounded-full bg-primary text-white font-semibold"
             >
               {t("voice_yes", lang)}
             </button>
             <button
               type="button"
               onClick={() => chooseVoiceHelp("no")}
-              className="min-h-[48px] rounded-full border border-outline bg-surface text-ink font-semibold text-[17px]"
+              className="min-h-[56px] text-[18px] rounded-full border border-outline bg-surface text-ink font-semibold"
             >
               {t("voice_no", lang)}
             </button>
@@ -203,7 +123,7 @@ export default function Home({ lang, setLang, onStart, onPersona }) {
       <button
         type="button"
         onClick={onStart}
-        className="w-full h-14 rounded-full bg-primary text-white font-semibold text-[17px]"
+        className="w-full min-h-[56px] text-[18px] rounded-full bg-primary text-white font-semibold"
       >
         {t("start", lang)}
       </button>
