@@ -99,6 +99,7 @@ export default function Admin({ lang, onNavigate }) {
   const [saved, setSaved] = useState("");
   const [customs, setCustoms] = useState(readCustomSchemes);
   const [downloadError, setDownloadError] = useState("");
+  const [deletedMsg, setDeletedMsg] = useState("");
 
   const set = (key) => (e) => {
     const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
@@ -145,8 +146,7 @@ export default function Admin({ lang, onNavigate }) {
     setSaved("Saved. It now appears in Results.");
   }
 
-  function removeCustom(id, name) {
-    if (!window.confirm(`Delete "${name}"?`)) return;
+  function removeCustom(id) {
     const next = readCustomSchemes().filter((s) => s.id !== id);
     try {
       writeCustomSchemes(next);
@@ -155,6 +155,7 @@ export default function Admin({ lang, onNavigate }) {
       return;
     }
     setCustoms(next);
+    setDeletedMsg("Deleted");
   }
 
   async function downloadSchemes() {
@@ -299,7 +300,7 @@ export default function Admin({ lang, onNavigate }) {
                 <span className="text-[17px] text-ink">{name}</span>
                 <button
                   type="button"
-                  onClick={() => removeCustom(s.id, name)}
+                  onClick={() => removeCustom(s.id)}
                   className="min-h-[48px] min-w-[48px] px-2 text-[17px] font-semibold text-[#B91C1C] underline"
                 >
                   Delete
@@ -308,6 +309,7 @@ export default function Admin({ lang, onNavigate }) {
             );
           })}
         </ul>
+        {deletedMsg && <span role="status" className="text-[17px] font-semibold text-ink">{deletedMsg}</span>}
       </section>
 
       {/* Export */}

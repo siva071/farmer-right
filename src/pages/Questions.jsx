@@ -113,6 +113,7 @@ export default function Questions({ lang, answers, setAnswers, onBack, onDone })
   const [index, setIndex] = useState(0);
   const [districts, setDistricts] = useState([]);
   const [listening, setListening] = useState(false);
+  const [voiceMsg, setVoiceMsg] = useState("");
   const recRef = useRef(null);
   const SR = typeof window !== "undefined" ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
 
@@ -209,20 +210,28 @@ export default function Questions({ lang, answers, setAnswers, onBack, onDone })
   };
 
   const startVoice = () => {
-    if (!SR) return;
+    setVoiceMsg("");
+    if (!SR) {
+      setVoiceMsg(t("voice_unavailable", lang));
+      return;
+    }
     const rec = new SR();
     rec.lang = "te-IN";
     rec.interimResults = false;
     rec.maxAlternatives = 1;
     rec.onresult = (e) => handleVoice(e.results?.[0]?.[0]?.transcript ?? "");
     rec.onend = () => setListening(false);
-    rec.onerror = () => setListening(false);
+    rec.onerror = () => {
+      setListening(false);
+      setVoiceMsg(t("voice_unavailable", lang));
+    };
     recRef.current = rec;
     setListening(true);
     try {
       rec.start();
     } catch {
       setListening(false);
+      setVoiceMsg(t("voice_unavailable", lang));
     }
   };
 
@@ -364,6 +373,7 @@ export default function Questions({ lang, answers, setAnswers, onBack, onDone })
           <span className="text-xs text-muted bg-surface rounded px-2 py-0.5 shadow-sm">
             {listening ? t("mic_listening", lang) : t("mic_label", lang)}
           </span>
+          {voiceMsg && <p className="text-sm">{voiceMsg}</p>}
         </div>
       )}
     </div>

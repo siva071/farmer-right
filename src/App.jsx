@@ -64,7 +64,7 @@ export default function App() {
   } else if (page === "results") {
     body = <Results lang={lang} answers={answers} onNavigate={go} />;
   } else if (page === "admin") {
-    body = <Admin lang={lang} />;
+    body = <Admin lang={lang} onNavigate={go} />;
   } else {
     body = (
       <Home

@@ -47,6 +47,62 @@ export const STRINGS = {
   admin_title: { te: "అడ్మిన్", en: "Admin" },
   admin_soon: { te: "త్వరలో వస్తుంది", en: "Coming next" },
   step_of: { te: "ప్రశ్న", en: "Question" },
+  per_year: { te: "సంవత్సరానికి", en: "per year" },
+  pmfby_kcc_note: {
+    te: "PMFBY బీమా మరియు KCC రుణం ఇక్కడ లెక్కించబడవు — అవి వార్షిక నగదు కాదు.",
+    en: "PMFBY insurance and KCC loan are not counted here — they are not yearly cash.",
+  },
+  fix_first: {
+    te: "ముందుగా ఇవి సరిచేయండి — {amount}/సంవత్సరం నిరోధించబడింది",
+    en: "Fix these first — {amount}/year blocked",
+  },
+  year_unit: { te: "సంవత్సరం", en: "year" },
+  fix_label: { te: "పరిష్కారం:", en: "FIX:" },
+  why_label: { te: "ఎందుకు:", en: "Why:" },
+  how_to_apply: { te: "ఎలా దరఖాస్తు చేయాలి", en: "How to apply" },
+  no_steps: { te: "ఈ పథకానికి దశలు అందుబాటులో లేవు.", en: "No steps are available for this scheme." },
+  last_verified: { te: "చివరిగా ధృవీకరించబడింది: నవంబర్ 2026", en: "Last verified Nov 2026" },
+  documents: { te: "పత్రాలు", en: "Documents" },
+  docs_hint: {
+    te: "పత్రాన్ని నొక్కి సిద్ధం / ఇంకా కావాలి అని గుర్తించండి.",
+    en: "Tap a document to mark it Ready or Still needed.",
+  },
+  ready: { te: "సిద్ధం", en: "Ready" },
+  still_needed: { te: "ఇంకా కావాలి", en: "Still needed" },
+  ready_to_apply: { te: "దరఖాస్తుకు సిద్ధం", en: "Ready to apply" },
+  deadline_left: {
+    te: "Apply chesukovadaniki {days} days migilayi — {date}",
+    en: "Apply by {date} — {days} days left",
+  },
+  deadline_passed: { te: "గడువు ముగిసింది", en: "Deadline passed" },
+  pmfby_district_note: {
+    te: "జిల్లా నోటిఫికేషన్ చూడండి — pmfby.gov.in",
+    en: "District notification chudandi — pmfby.gov.in",
+  },
+  pattadar_passbook: { te: "పట్టాదారు పాస్‌బుక్", en: "Pattadar passbook" },
+  ccrc_card: { te: "CCRC కార్డు", en: "CCRC card" },
+  decoder_title: { te: "₹2,000 ఎందుకు రాలేదు?", en: "Naa ₹2,000 enduku raledu?" },
+  office_label: { te: "కార్యాలయం:", en: "Office:" },
+  document_label: { te: "పత్రం:", en: "Document:" },
+  btn_whatsapp: { te: "వాట్సాప్ ద్వారా పంచుకోండి", en: "WhatsApp share" },
+  btn_checklist: { te: "ప్రింట్ చెక్‌లిస్ట్", en: "Printable checklist" },
+  btn_listen: { te: "సారాంశం వినండి", en: "Listen to summary" },
+  btn_start_again: { te: "మళ్ళీ ప్రారంభించండి", en: "Start again" },
+  btn_back_home: { te: "హోమ్‌కు తిరిగి వెళ్ళు", en: "Back to home" },
+  helper_on: {
+    te: "హెల్పర్ మోడ్ ఆన్: ప్రతి దశను రైతుకు వివరించండి",
+    en: "Helper mode on: explain each step to the farmer",
+  },
+  no_answers: {
+    te: "ఇంకా సమాధానాలు లేవు. ముందుగా కొన్ని ప్రశ్నలకు జవాబు ఇవ్వండి; అప్పుడు ఫలితాలు ఇక్కడ కనిపిస్తాయి.",
+    en: "No answers yet. Answer a few questions first, then your results will show here.",
+  },
+  checklist_title: { te: "చెక్‌లిస్ట్", en: "Checklist" },
+  documents_checklist: { te: "పత్రాల చెక్‌లిస్ట్", en: "Documents checklist" },
+  season_rabi: { te: "రబీ", en: "Rabi" },
+  season_kharif: { te: "ఖరీఫ్", en: "Kharif" },
+  season_summer: { te: "వేసవి", en: "Summer" },
+
 };
 
 const LANG_KEY = "rh.lang";
