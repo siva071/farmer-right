@@ -114,7 +114,13 @@ export default function Questions({ lang, answers, setAnswers, onBack, onDone })
   const [districts, setDistricts] = useState([]);
   const [listening, setListening] = useState(false);
   const [voiceMsg, setVoiceMsg] = useState("");
+  const [speaking, setSpeaking] = useState(false);
+  const [speakMsg, setSpeakMsg] = useState("");
+  const [heard, setHeard] = useState("");
+  const speakTokenRef = useRef(0);
   const recRef = useRef(null);
+  const cardRef = useRef(null);
+  const prevIndexRef = useRef(index);
   const SR = typeof window !== "undefined" ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
 
   useEffect(() => {
@@ -140,6 +146,22 @@ export default function Questions({ lang, answers, setAnswers, onBack, onDone })
   }, []);
 
   useEffect(() => () => recRef.current?.abort?.(), []);
+
+  // On unmount, stop any speech and ignore late speech callbacks.
+  useEffect(
+    () => () => {
+      speakTokenRef.current += 1;
+      window.speechSynthesis?.cancel?.();
+    },
+    [],
+  );
+
+  // Smooth-scroll the question card into view when the step changes (not on first render).
+  useEffect(() => {
+    if (prevIndexRef.current === index) return;
+    prevIndexRef.current = index;
+    cardRef.current && cardRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [index]);
 
   const visibleSteps = STEPS.filter((s) => !s.when || s.when(answers));
   const step = visibleSteps[index];
@@ -209,8 +231,56 @@ export default function Questions({ lang, answers, setAnswers, onBack, onDone })
     if (s.textarea) patch({ notes: text });
   };
 
-  const startVoice = () => {
-    setVoiceMsg("");
+  // Reads the current question aloud: Telugu voice if installed, otherwise English.
+  // onDone runs once on end (or after timeoutMs if onend never fires); onFail on error.
+  const speakQuestion = (onDone, onFail, timeoutMs) => {
+    const synth = window.speechSynthesis;
+    const Utter = window.SpeechSynthesisUtterance;
+    if (!synth || !Utter) {
+      onFail();
+      return;
+    }
+    const teVoice = (synth.getVoices?.() || []).find((v) => /^te/i.test(v.lang || ""));
+    const token = ++speakTokenRef.current;
+    let timer = null;
+    let finished = false;
+    const finish = (ok) => {
+      if (finished || token !== speakTokenRef.current) return;
+      finished = true;
+      clearTimeout(timer);
+      setSpeaking(false);
+      if (ok) onDone();
+      else onFail();
+    };
+    try {
+      synth.cancel();
+      const u = new Utter(teVoice ? step.prompt.te : step.prompt.en);
+      u.lang = teVoice ? "te-IN" : "en-IN";
+      if (teVoice) u.voice = teVoice;
+      u.onend = () => finish(true);
+      u.onerror = () => finish(false);
+      setSpeaking(true);
+      if (timeoutMs) timer = setTimeout(() => finish(true), timeoutMs);
+      synth.speak(u);
+    } catch {
+      finished = true;
+      clearTimeout(timer);
+      setSpeaking(false);
+      onFail();
+    }
+  };
+
+  const speakButton = () => {
+    setSpeakMsg("");
+    speakQuestion(
+      () => {},
+      () => setSpeakMsg(t("voice_unavailable", lang)),
+      15000,
+    );
+  };
+
+  // Starts recognition (te-IN). Every exit path clears listening or shows a message.
+  const startRecognition = () => {
     if (!SR) {
       setVoiceMsg(t("voice_unavailable", lang));
       return;
@@ -219,8 +289,17 @@ export default function Questions({ lang, answers, setAnswers, onBack, onDone })
     rec.lang = "te-IN";
     rec.interimResults = false;
     rec.maxAlternatives = 1;
-    rec.onresult = (e) => handleVoice(e.results?.[0]?.[0]?.transcript ?? "");
-    rec.onend = () => setListening(false);
+    let gotResult = false;
+    rec.onresult = (e) => {
+      const transcript = e.results?.[0]?.[0]?.transcript ?? "";
+      gotResult = Boolean(transcript.trim());
+      setHeard(transcript);
+      handleVoice(transcript);
+    };
+    rec.onend = () => {
+      setListening(false);
+      if (!gotResult) setVoiceMsg(t("voice_unavailable", lang));
+    };
     rec.onerror = () => {
       setListening(false);
       setVoiceMsg(t("voice_unavailable", lang));
@@ -233,6 +312,21 @@ export default function Questions({ lang, answers, setAnswers, onBack, onDone })
       setListening(false);
       setVoiceMsg(t("voice_unavailable", lang));
     }
+  };
+
+  // Mic tap: speak the question first, then listen.
+  const startVoice = () => {
+    setVoiceMsg("");
+    setHeard("");
+    if (!SR) {
+      setVoiceMsg(t("voice_unavailable", lang));
+      return;
+    }
+    speakQuestion(
+      startRecognition,
+      () => setVoiceMsg(t("voice_unavailable", lang)),
+      4000,
+    );
   };
 
   const goNext = () => {
@@ -319,7 +413,7 @@ export default function Questions({ lang, answers, setAnswers, onBack, onDone })
   const promptText = labelOf(step.prompt, lang);
 
   return (
-    <div className="max-w-[390px] mx-auto px-4 py-6 pb-40 space-y-6">
+    <div ref={cardRef} className="max-w-[390px] mx-auto px-4 py-6 pb-40 space-y-6">
       <div className="space-y-2">
         <div className="flex justify-between text-sm text-muted">
           <span>{t("step_of", lang)} {index + 1}/{total}</span>
@@ -338,9 +432,25 @@ export default function Questions({ lang, answers, setAnswers, onBack, onDone })
         </div>
       </div>
 
-      <h2 className="text-[20px] leading-7 font-semibold text-ink">{promptText}</h2>
+      <div className="flex items-start justify-between gap-3">
+        <h2 className="text-[20px] leading-7 font-semibold text-ink">{promptText}</h2>
+        <button
+          type="button"
+          onClick={speakButton}
+          className="shrink-0 min-h-[48px] px-3 rounded-full border border-[#1B5E20] text-[15px] font-semibold text-[#1B5E20]"
+        >
+          {speaking ? t("speaking", lang) : `🔊 ${t("speak_question", lang)}`}
+        </button>
+      </div>
+      {speakMsg && <p className="text-sm">{speakMsg}</p>}
 
       {renderBody()}
+
+      {heard && (
+        <p className="text-[17px] leading-6 text-ink">
+          {t("heard_label", lang)} {heard}
+        </p>
+      )}
 
       <div className="flex items-center justify-between pt-2">
         <button
@@ -368,10 +478,14 @@ export default function Questions({ lang, answers, setAnswers, onBack, onDone })
             aria-label={t("mic_label", lang)}
             className="w-16 h-16 rounded-full bg-primary text-white text-[22px] shadow-md flex items-center justify-center"
           >
-            {listening ? "…" : "🎤"}
+            {listening || speaking ? "…" : "🎤"}
           </button>
-          <span className="text-xs text-muted bg-surface rounded px-2 py-0.5 shadow-sm">
-            {listening ? t("mic_listening", lang) : t("mic_label", lang)}
+          <span className="text-sm font-semibold text-ink bg-surface rounded px-2 py-0.5 shadow-sm">
+            {speaking
+              ? t("speaking", lang)
+              : listening
+                ? t("mic_listening", lang)
+                : t("mic_label", lang)}
           </span>
           {voiceMsg && <p className="text-sm">{voiceMsg}</p>}
         </div>

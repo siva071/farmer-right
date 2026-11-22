@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const CUSTOM_KEY = "rh.customSchemes";
 
@@ -75,7 +75,6 @@ function validate(f) {
     e.benefit = "Enter a number, 0 or more.";
   if (f.officialLink.trim() && !f.officialLink.trim().startsWith("https://"))
     e.officialLink = "Link must start with https://";
-  if (!f.lastVerified) e.lastVerified = "Last verified date is required.";
   const m = checkRules(f.matchRules);
   if (m) e.matchRules = m;
   const n = checkRules(f.notMatchRules);
@@ -100,6 +99,12 @@ export default function Admin({ lang, onNavigate }) {
   const [customs, setCustoms] = useState(readCustomSchemes);
   const [downloadError, setDownloadError] = useState("");
   const [deletedMsg, setDeletedMsg] = useState("");
+  const rootRef = useRef(null);
+
+  // Opening Admin scrolls its root to the top, smoothly.
+  useEffect(() => {
+    rootRef.current && rootRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
 
   const set = (key) => (e) => {
     const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
@@ -182,7 +187,7 @@ export default function Admin({ lang, onNavigate }) {
   const heading = pick(lang, "Admin — kotha scheme", "Admin — Add scheme");
 
   return (
-    <div className="max-w-[390px] mx-auto px-4 py-6 space-y-6 bg-canvas min-h-screen">
+    <div ref={rootRef} className="max-w-[390px] mx-auto px-4 py-6 space-y-6 bg-canvas min-h-screen">
       <header className="space-y-2">
         <h1 className="text-[24px] leading-8 font-bold text-ink">{heading}</h1>
         <p className={HINT}>
@@ -240,7 +245,7 @@ export default function Admin({ lang, onNavigate }) {
         </Field>
 
         <Field label="Last verified date" error={errors.lastVerified}>
-          <input className={INPUT} type="date" value={form.lastVerified} onChange={set("lastVerified")} required />
+          <input className={INPUT} type="date" value={form.lastVerified} onChange={set("lastVerified")} onInput={set("lastVerified")} required />
         </Field>
 
         <Field label="Match rules (JSON array)" error={errors.matchRules}>

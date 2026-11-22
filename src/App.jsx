@@ -37,7 +37,7 @@ export default function App() {
 
   const go = (p) => {
     setPage(p);
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const startQuestions = () => {

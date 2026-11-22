@@ -22,7 +22,7 @@ export const STRINGS = {
     en: "Pick a farmer example, or start",
   },
   helper_toggle: {
-    te: "Nenu farmer ki help chesthunna",
+    te: "నేను రైతులకు సహాయం చేస్తున్నాను",
     en: "Nenu farmer ki help chesthunna",
   },
   helper_text: {
@@ -33,6 +33,9 @@ export const STRINGS = {
   mic_listening: { te: "వింటున్నాను...", en: "Listening..." },
   voice_unavailable: { te: "ఈ పరికరంలో వాయిస్ అందుబాటులో లేదు", en: "Voice not available on this device" },
   speaking: { te: "మాట్లాడుతోంది...", en: "Speaking..." },
+  speak_question: { te: "ప్రశ్న వినండి", en: "Read question" },
+  stop_speaking: { te: "ఆపు", en: "Stop" },
+  heard_label: { te: "విన్నది:", en: "Heard:" },
   print_no_popup: { te: "చెక్‌లిస్ట్ తెరవడానికి పాప్-అప్‌లను అనుమతించండి", en: "Allow pop-ups to open the checklist" },
   naa_placeholder: { te: "Naa gurinchi cheptha", en: "Naa gurinchi cheptha" },
   results_title: { te: "ఫలితాలు", en: "Results" },
@@ -62,6 +65,8 @@ export const STRINGS = {
   how_to_apply: { te: "ఎలా దరఖాస్తు చేయాలి", en: "How to apply" },
   no_steps: { te: "ఈ పథకానికి దశలు అందుబాటులో లేవు.", en: "No steps are available for this scheme." },
   last_verified: { te: "చివరిగా ధృవీకరించబడింది: నవంబర్ 2026", en: "Last verified Nov 2026" },
+  last_verified_label: { te: "చివరిగా ధృవీకరించబడింది", en: "Last verified" },
+
   documents: { te: "పత్రాలు", en: "Documents" },
   docs_hint: {
     te: "పత్రాన్ని నొక్కి సిద్ధం / ఇంకా కావాలి అని గుర్తించండి.",

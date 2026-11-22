@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   evaluateSchemes,
   totalCashPerYear,
@@ -121,6 +121,23 @@ function wholeDaysLeft(iso) {
   return Math.round((target - today) / MS_PER_DAY);
 }
 
+const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTHS_TE = ["జనవరి", "ఫిబ్రవరి", "మార్చి", "ఏప్రిల్", "మే", "జూన్", "జులై", "ఆగస్టు", "సెప్టెంబర్", "అక్టోబర్", "నవంబర్", "డిసెంబర్"];
+// "2026-11" -> "నవంబర్ 2026"; any other value is returned unchanged. Used only in Telugu mode.
+function formatVerifiedTe(v) {
+  const m = /^(\d{4})-(\d{2})$/.exec(v || "");
+  if (!m) return v;
+  const mon = MONTHS_TE[Number(m[2]) - 1];
+  return mon ? `${mon} ${m[1]}` : v;
+}
+// "2026-11" -> "Nov 2026"; any other value (e.g. a full custom date) is returned unchanged.
+function formatVerified(v) {
+  const m = /^(\d{4})-(\d{2})$/.exec(v || "");
+  if (!m) return v;
+  const mon = MONTHS_EN[Number(m[2]) - 1];
+  return mon ? `${mon} ${m[1]}` : v;
+}
+
 function SchemeCard({ r, s, lang, tenure, crop }) {
   const name = bi(lang, s?.name_te, s?.name_en) || r.id;
   const other = lang === "en" ? s?.name_te : s?.name_en;
@@ -183,17 +200,19 @@ function SchemeCard({ r, s, lang, tenure, crop }) {
           <p className="text-[17px] leading-6 text-muted">{t("no_steps", lang)}</p>
         )}
       </div>
-      {s?.official_link && (
+      {(s?.official_link || (s?.id?.startsWith("custom-") && s?.last_verified)) && (
         <p className="text-[17px] leading-6 text-ink">
-          <a
-            href={s.official_link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="break-all font-semibold text-[#1B5E20] underline"
-          >
-            {s.official_link}
-          </a>
-          <span className="block text-[14px] text-muted">{s?.last_verified ? `Last verified ${s.last_verified}` : t("last_verified", lang)}</span>
+          {s?.official_link && (
+            <a
+              href={s.official_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="break-all font-semibold text-[#1B5E20] underline"
+            >
+              {s.official_link}
+            </a>
+          )}
+          <span className="block text-[14px] text-muted">{s?.last_verified ? (lang === "te" ? `${t("last_verified_label", lang)} ${formatVerifiedTe(s.last_verified)}` : `Last verified ${formatVerified(s.last_verified)}`) : t("last_verified", lang)}</span>
         </p>
       )}
     </article>
@@ -210,7 +229,9 @@ export default function Results({ lang, answers, onNavigate }) {
   // Speech and print status shown near their buttons.
   const [speaking, setSpeaking] = useState(false);
   const [speechMsg, setSpeechMsg] = useState("");
+  const utterRef = useRef(null);
   const [printMsg, setPrintMsg] = useState("");
+  const heroRef = useRef(null);
 
   useEffect(() => {
     if (!answers || Object.keys(answers).length === 0) return undefined;
@@ -232,6 +253,13 @@ export default function Results({ lang, answers, onNavigate }) {
       cancelled = true;
     };
   }, [answers]);
+
+  // Hero renders only once results are ready, so the scroll waits for that (runs once).
+  const heroReady = hasAnswers && state.status === "ready";
+  useEffect(() => {
+    if (!heroReady) return;
+    heroRef.current && heroRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [heroReady]);
 
   if (!hasAnswers) {
     return (
@@ -305,10 +333,35 @@ export default function Results({ lang, answers, onNavigate }) {
     synth.cancel();
     const u = new window.SpeechSynthesisUtterance(summaryText);
     u.lang = "te-IN";
-    u.onend = () => setSpeaking(false);
-    u.onerror = () => setSpeaking(false);
-    setSpeaking(true);
-    synth.speak(u);
+    utterRef.current = u;
+    // Only the current utterance may clear the speaking state (a cancel fires onerror on the old one).
+    u.onend = () => {
+      if (utterRef.current !== u) return;
+      utterRef.current = null;
+      setSpeaking(false);
+    };
+    u.onerror = (e) => {
+      if (utterRef.current !== u) return;
+      utterRef.current = null;
+      setSpeaking(false);
+      if (e?.error !== "interrupted" && e?.error !== "canceled") {
+        setSpeechMsg(t("voice_unavailable", lang));
+      }
+    };
+    try {
+      setSpeaking(true);
+      synth.speak(u);
+    } catch {
+      utterRef.current = null;
+      setSpeaking(false);
+      setSpeechMsg(t("voice_unavailable", lang));
+    }
+  }
+
+  function stopSpeaking() {
+    utterRef.current = null;
+    window.speechSynthesis?.cancel();
+    setSpeaking(false);
   }
 
   function printChecklist() {
@@ -389,7 +442,7 @@ export default function Results({ lang, answers, onNavigate }) {
       <h1 className="text-[24px] leading-8 font-bold text-ink">{seasonShown}</h1>
 
       {/* Hero: yearly cash only */}
-      <section className="rounded-[20px] border border-[#E3E6DF] bg-surface p-4 space-y-1">
+      <section ref={heroRef} className="rounded-[20px] border border-[#E3E6DF] bg-surface p-4 space-y-1">
         <p className="text-[44px] leading-[52px] font-bold text-ink">{money(total)}</p>
         <p className="text-[17px] text-muted">{t("per_year", lang)}</p>
         <p className="text-[14px] leading-5 text-muted">{t("pmfby_kcc_note", lang)}</p>
@@ -522,6 +575,11 @@ export default function Results({ lang, answers, onNavigate }) {
         <button type="button" onClick={speakSummary} className={OUTLINE_BTN}>
           {speaking ? t("speaking", lang) : t("btn_listen", lang)}
         </button>
+        {speaking && (
+          <button type="button" onClick={stopSpeaking} className={OUTLINE_BTN}>
+            {t("stop_speaking", lang)}
+          </button>
+        )}
         {speechMsg && <p className="text-[14px] text-muted">{speechMsg}</p>}
         <button
           type="button"
